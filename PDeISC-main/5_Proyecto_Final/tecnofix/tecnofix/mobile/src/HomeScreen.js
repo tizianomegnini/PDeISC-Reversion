@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, Text, View } from 'react-native';
 import { consultasApi, tecnicoApi } from './api';
-import { Button, Card, Empty, Field, Heading, Loading, Message, formatDate, statusLabel, styles } from './ui';
+import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, statusLabel, styles } from './ui';
 
 const EQUIPMENT = ['Celular', 'Notebook', 'PC de escritorio', 'Tablet', 'Consola', 'Impresora', 'Otro'];
 
@@ -89,9 +89,9 @@ export default function HomeScreen({ user, onNavigate }) {
   const onRefresh = () => { setRefreshing(true); load(); };
 
   if (view === 'new') {
-    return <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    return <MotionScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <NewConsultation onBack={() => setView('list')} onCreated={(item) => { setView('list'); onNavigate('detail', item.id); }} />
-    </ScrollView>;
+    </MotionScrollView>;
   }
   if (loading) return <Loading />;
 
@@ -100,9 +100,9 @@ export default function HomeScreen({ user, onNavigate }) {
   const actions = (data || []).filter((item) => item.estado === 'asignada' || item.estado === 'en_proceso' || item.estado === 'esperando_cliente').length;
 
   return (
-    <ScrollView
+    <MotionScrollView
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#1769aa']} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
     >
       <Heading
         title={isTechnician ? 'Panel técnico' : 'Mis consultas'}
@@ -128,6 +128,6 @@ export default function HomeScreen({ user, onNavigate }) {
       {data?.length
         ? data.map((item) => <ConsultationItem key={item.id} item={item} onPress={() => onNavigate('detail', item.id)} />)
         : <Card><Empty>{isTechnician ? 'Todavía no tenés consultas asignadas.' : 'Todavía no tenés consultas. Creá una cuando necesites ayuda con un equipo.'}</Empty></Card>}
-    </ScrollView>
+    </MotionScrollView>
   );
 }

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { authApi, getOAuthRedirectUri, saveToken } from './api';
-import { Button, Card, Field, Heading, Message, styles } from './ui';
+import { BrandMark, Button, Card, Field, Heading, Message, MotionScrollView, styles } from './ui';
 
 const socialProviders = [
   { id: 'google', label: 'Continuar con Google' },
@@ -24,7 +24,7 @@ const socialErrorMessage = (code) => ({
   github_cancelled: 'Se canceló el inicio de sesión con GitHub.',
 }[code] || 'No se pudo completar el inicio de sesión social. Intentá nuevamente.');
 
-export default function AuthScreen({ onSession, initialError = '' }) {
+export default function AuthScreen({ onSession, initialError = '', themeMode = 'light', onThemeChange }) {
   const [registering, setRegistering] = useState(false);
   const [form, setForm] = useState({ nombre: '', apellido: '', email: '', telefono: '', password: '' });
   const [busy, setBusy] = useState(false);
@@ -79,9 +79,23 @@ export default function AuthScreen({ onSession, initialError = '' }) {
 
   return (
     <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={[styles.container, { justifyContent: 'center', paddingVertical: 28 }]} keyboardShouldPersistTaps="handled">
-        <Card>
-          <Text style={{ color: '#1769aa', fontWeight: '800', letterSpacing: 2 }}>TECNOfIX · SOPORTE</Text>
+      <MotionScrollView contentContainerStyle={styles.authContainer} keyboardShouldPersistTaps="handled">
+        <View style={{ width: '100%', alignItems: 'flex-end' }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={themeMode === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}
+            onPress={() => onThemeChange?.(themeMode === 'dark' ? 'light' : 'dark')}
+            style={styles.themeButton}
+          >
+            <Text style={styles.themeButtonText}>{themeMode === 'dark' ? '☀' : '☾'}</Text>
+          </Pressable>
+        </View>
+        <View style={styles.authBrand}>
+          <BrandMark size={76} />
+          <Text style={styles.authBrandName}>TecnoFix</Text>
+          <Text style={styles.authBrandSubtitle}>SOPORTE TÉCNICO</Text>
+        </View>
+        <Card style={styles.authCard}>
           <Heading title={registering ? 'Crear cuenta' : 'Bienvenido/a'} subtitle={registering ? 'Registrate como cliente para solicitar soporte técnico.' : 'Ingresá para consultar o dar seguimiento a tus casos.'} />
           {registering && <>
             <Field label="Nombre" value={form.nombre} onChangeText={update('nombre')} maxLength={80} />
@@ -100,7 +114,7 @@ export default function AuthScreen({ onSession, initialError = '' }) {
             ))}
           </>}
         </Card>
-      </ScrollView>
+      </MotionScrollView>
     </KeyboardAvoidingView>
   );
 }

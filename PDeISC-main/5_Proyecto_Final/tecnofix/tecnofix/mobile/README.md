@@ -1,6 +1,8 @@
-# TecnoFix para Android (Expo)
+# TecnoFix Soporte para Android (Expo)
 
 Esta es la app React Native. Se conecta al mismo backend que el sitio web; no contiene credenciales de base de datos.
+
+La app se muestra como **TecnoFix Soporte** en el dispositivo y usa el icono y la identidad visual de `assets/`. Incluye tema claro/oscuro persistente, áreas seguras para las barras del sistema y transiciones suaves al desplazarse por las pantallas.
 
 ## Probar con Expo Go
 

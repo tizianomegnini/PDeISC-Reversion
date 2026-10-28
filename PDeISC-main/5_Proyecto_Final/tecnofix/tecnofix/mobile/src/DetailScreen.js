@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { consultasApi } from './api';
-import { Button, Card, Empty, Field, Heading, Loading, Message, formatDate, fullName, statusLabel, styles } from './ui';
+import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, statusLabel, styles } from './ui';
 
 const TECH_ACTIONS = {
   asignada: [['en_proceso', 'Comenzar atención']],
@@ -51,9 +51,9 @@ function Chat({ consultaId, cerrada, canSend, reload }) {
       <Heading title="Conversación" subtitle="Los mensajes se actualizan automáticamente." />
       {loading ? <Loading label="Cargando mensajes…" /> : messages.length
         ? messages.map((message) => (
-          <View key={message.id} style={{ backgroundColor: '#f0f6fb', borderRadius: 10, padding: 12, gap: 5 }}>
+          <View key={message.id} style={{ backgroundColor: colors.conversationSurface, borderRadius: 10, padding: 12, gap: 5 }}>
             <Text style={styles.itemMeta}>{fullName({ nombre: message.autor_nombre, apellido: message.autor_apellido })} · {formatDate(message.created_at)}</Text>
-            <Text style={{ color: '#172b3a', lineHeight: 20 }}>{message.contenido}</Text>
+            <Text style={{ color: colors.text, lineHeight: 20 }}>{message.contenido}</Text>
           </View>
         ))
         : <Empty>La conversación empieza acá.</Empty>}
@@ -74,7 +74,7 @@ function Rating({ consulta, onRated }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   if (consulta.valoracion_estrellas) {
-    return <Card><Text style={styles.itemTitle}>Valoración</Text><Text style={{ color: '#a15c00', fontSize: 24 }}>{'★'.repeat(consulta.valoracion_estrellas)}{'☆'.repeat(5 - consulta.valoracion_estrellas)}</Text>{consulta.valoracion_comentario ? <Text style={styles.muted}>{consulta.valoracion_comentario}</Text> : null}</Card>;
+    return <Card><Text style={styles.itemTitle}>Valoración</Text><Text style={{ color: colors.amber, fontSize: 24 }}>{'★'.repeat(consulta.valoracion_estrellas)}{'☆'.repeat(5 - consulta.valoracion_estrellas)}</Text>{consulta.valoracion_comentario ? <Text style={styles.muted}>{consulta.valoracion_comentario}</Text> : null}</Card>;
   }
   const submit = async () => {
     if (!stars) { setError('Elegí de 1 a 5 estrellas.'); return; }
@@ -91,7 +91,7 @@ function Rating({ consulta, onRated }) {
   };
   return <Card>
     <Text style={styles.itemTitle}>¿Cómo fue la atención?</Text>
-    <View style={styles.row}>{[1, 2, 3, 4, 5].map((n) => <Pressable key={n} onPress={() => setStars(n)}><Text style={{ fontSize: 34, color: n <= stars ? '#e5a000' : '#a9b5bd' }}>{n <= stars ? '★' : '☆'}</Text></Pressable>)}</View>
+    <View style={styles.row}>{[1, 2, 3, 4, 5].map((n) => <Pressable key={n} onPress={() => setStars(n)}><Text style={{ fontSize: 34, color: n <= stars ? colors.rating : colors.ratingEmpty }}>{n <= stars ? '★' : '☆'}</Text></Pressable>)}</View>
     <Field label="Comentario opcional" value={comment} onChangeText={setComment} multiline maxLength={500} />
     {!!error && <Message>{error}</Message>}
     <Button title={busy ? 'Enviando…' : 'Enviar valoración'} onPress={submit} disabled={busy} />
@@ -141,7 +141,7 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
   const closed = ['finalizada', 'cancelada'].includes(consulta.estado);
   const equipment = [consulta.tipo_equipo, consulta.marca, consulta.modelo].filter(Boolean).join(' · ');
   return (
-    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <MotionScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Button title="← Volver" onPress={onBack} variant="secondary" />
       <Heading title={`Consulta #${consulta.id}`} subtitle={`${statusLabel(consulta.estado)} · ${formatDate(consulta.created_at)}`} />
       {!!error && <Message>{error}</Message>}
@@ -161,10 +161,10 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
       </Card>
       {consulta.estado === 'finalizada' && user.rol === 'cliente' && <Rating consulta={consulta} onRated={load} />}
       {consulta.estado === 'finalizada' && user.rol !== 'cliente' && consulta.valoracion_estrellas
-        ? <Card><Text style={styles.itemTitle}>Valoración</Text><Text style={{ color: '#a15c00', fontSize: 24 }}>{'★'.repeat(consulta.valoracion_estrellas)}{'☆'.repeat(5 - consulta.valoracion_estrellas)}</Text>{consulta.valoracion_comentario ? <Text style={styles.muted}>{consulta.valoracion_comentario}</Text> : null}</Card>
+        ? <Card><Text style={styles.itemTitle}>Valoración</Text><Text style={{ color: colors.amber, fontSize: 24 }}>{'★'.repeat(consulta.valoracion_estrellas)}{'☆'.repeat(5 - consulta.valoracion_estrellas)}</Text>{consulta.valoracion_comentario ? <Text style={styles.muted}>{consulta.valoracion_comentario}</Text> : null}</Card>
         : null}
       <Chat consultaId={consulta.id} cerrada={closed} canSend={user.rol !== 'admin'} reload={load} />
       {user.rol === 'admin' && <Button title="Volver al panel" variant="secondary" onPress={onDone} />}
-    </ScrollView>
+    </MotionScrollView>
   );
 }

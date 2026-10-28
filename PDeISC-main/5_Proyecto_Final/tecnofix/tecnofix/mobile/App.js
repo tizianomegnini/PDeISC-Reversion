@@ -1,20 +1,87 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, SafeAreaView as InsetsSafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { authApi, restoreToken, saveToken } from './src/api';
 import AdminScreen from './src/AdminScreen';
 import AuthScreen from './src/AuthScreen';
 import DetailScreen from './src/DetailScreen';
 import HomeScreen from './src/HomeScreen';
 import ProfileScreen from './src/ProfileScreen';
-import { Button, Loading, colors, fullName, styles } from './src/ui';
+import { BrandMark, Loading, colors, fullName, getThemeMode, saveThemeMode, setThemeMode, styles, restoreThemeMode } from './src/ui';
+
+function TabBar({ user, screen, onNavigate, bottomInset }) {
+  const tabs = [
+    { id: 'home', label: user.rol === 'tecnico' ? 'Mis casos' : 'Inicio', icon: '⌂' },
+    ...(user.rol === 'admin' ? [{ id: 'admin', label: 'Gestión', icon: '▦' }] : []),
+    { id: 'profile', label: 'Perfil', icon: '◉' },
+  ];
+  const activeTab = screen === 'profile' ? 'profile' : screen === 'admin' ? 'admin' : 'home';
+
+  return (
+    <View style={[styles.tabBar, { paddingBottom: Math.max(bottomInset, 8) }]}>
+      {tabs.map((tab) => {
+        const active = activeTab === tab.id;
+        return (
+          <Pressable
+            key={tab.id}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active }}
+            onPress={() => onNavigate(tab.id)}
+            style={[styles.tab, active && styles.tabActive]}
+          >
+            <Text style={[styles.tabIcon, active && styles.tabIconActive]}>{tab.icon}</Text>
+            <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{tab.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function roleLabel(role) {
+  return ({ cliente: 'Cliente', tecnico: 'Técnico', admin: 'Administrador' })[role] || role;
+}
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppContent />
+    </SafeAreaProvider>
+  );
+}
+
+function AppContent() {
+  const insets = useSafeAreaInsets();
   const [user, setUser] = useState(null);
   const [screen, setScreen] = useState('home');
   const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [restoreError, setRestoreError] = useState('');
+  const [themeMode, setThemeModeState] = useState(getThemeMode());
+
+  useEffect(() => {
+    let active = true;
+    restoreThemeMode().then((mode) => {
+      if (!active) return;
+      setThemeMode(mode);
+      setThemeModeState(mode);
+    }).catch((error) => {
+      console.error('No se pudo restaurar el tema guardado:', error);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const changeTheme = async (mode) => {
+    const nextMode = setThemeMode(mode);
+    setThemeModeState(nextMode);
+    try {
+      await saveThemeMode(nextMode);
+    } catch (error) {
+      console.error('No se pudo guardar la preferencia de tema:', error);
+      Alert.alert('Tema no guardado', 'El tema cambió, pero no se pudo guardar la preferencia para la próxima vez.');
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -43,7 +110,7 @@ export default function App() {
     setSelectedId(id);
     setScreen(next);
   };
-  const logout = () => Alert.alert('Cerrar sesión', '¿Querés salir de TecnoFix?', [
+  const logout = () => Alert.alert('Cerrar sesión', '¿Querés salir de TecnoFix Soporte?', [
     { text: 'Cancelar', style: 'cancel' },
     { text: 'Cerrar sesión', style: 'destructive', onPress: async () => {
       await saveToken(null);
@@ -61,32 +128,58 @@ export default function App() {
   };
 
   if (loading) {
-    return <SafeAreaView style={styles.safe}><StatusBar style="dark" /><Loading label="Iniciando TecnoFix…" /></SafeAreaView>;
+    return <InsetsSafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.safe}><StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} /><Loading label="Iniciando TecnoFix Soporte…" /></InsetsSafeAreaView>;
   }
   if (!user) {
-    return <SafeAreaView style={styles.safe}><StatusBar style="dark" /><AuthScreen onSession={onAuthenticated} initialError={restoreError} /></SafeAreaView>;
+    return <InsetsSafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.safe}><StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} /><AuthScreen onSession={onAuthenticated} initialError={restoreError} themeMode={themeMode} onThemeChange={changeTheme} /></InsetsSafeAreaView>;
   }
 
   const isAdmin = user.rol === 'admin';
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar style="dark" />
+    <InsetsSafeAreaView edges={['top', 'right', 'left']} style={styles.safe}>
+      <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} backgroundColor={colors.surface} />
       <View style={{ flex: 1 }}>
-        <View style={{ backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, gap: 8 }}>
+        <View style={styles.appHeader}>
           <View style={styles.spaceBetween}>
-            <Pressable onPress={() => setScreen(user.debe_cambiar_password ? 'password' : 'home')}>
-              <Text style={{ color: colors.primaryDark, fontSize: 20, fontWeight: '900' }}>TecnoFix</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ir al inicio"
+              style={styles.headerBrand}
+              onPress={() => setScreen(user.debe_cambiar_password ? 'password' : 'home')}
+            >
+              <BrandMark size={38} />
+              <View>
+                <Text style={styles.headerBrandName}>TecnoFix</Text>
+                <Text style={styles.headerBrandSubtitle}>SOPORTE TÉCNICO</Text>
+              </View>
             </Pressable>
-            <Text numberOfLines={1} style={{ color: colors.muted, flexShrink: 1, marginLeft: 8 }}>{fullName(user)} · {user.rol}</Text>
+            <View style={styles.headerIdentity}>
+              <Text numberOfLines={1} style={styles.headerUser}>{fullName(user)}</Text>
+              <Text style={styles.headerRole}>{roleLabel(user.rol)}</Text>
+            </View>
+            {!user.debe_cambiar_password && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={themeMode === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}
+                onPress={() => changeTheme(themeMode === 'dark' ? 'light' : 'dark')}
+                style={styles.themeButton}
+              >
+                <Text style={styles.themeButtonText}>{themeMode === 'dark' ? '☀' : '☾'}</Text>
+              </Pressable>
+            )}
+            {!user.debe_cambiar_password && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar sesión"
+                onPress={logout}
+                style={styles.headerLogout}
+              >
+                <Text style={styles.headerLogoutText}>Salir</Text>
+              </Pressable>
+            )}
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
-            {!user.debe_cambiar_password && <Button title={isAdmin ? 'Panel admin' : user.rol === 'tecnico' ? 'Mis casos' : 'Mis consultas'} small onPress={() => setScreen('home')} />}
-            {!user.debe_cambiar_password && isAdmin && <Button title="Administración" small variant="secondary" onPress={() => setScreen('admin')} />}
-            {!user.debe_cambiar_password && <Button title="Perfil" small variant="secondary" onPress={() => setScreen('profile')} />}
-            <Button title="Salir" small variant="danger" onPress={logout} />
-          </ScrollView>
         </View>
-        <View style={styles.container}>
+        <View style={styles.screenContainer}>
           {screen === 'home' && user.rol === 'admin'
             ? <AdminScreen onOpenConsultation={(id) => goTo('detail', id)} />
             : screen === 'home'
@@ -96,10 +189,13 @@ export default function App() {
                 : screen === 'detail'
                   ? <DetailScreen id={selectedId} user={user} onBack={() => setScreen(isAdmin ? 'admin' : 'home')} onDone={() => setScreen('admin')} />
                   : screen === 'password'
-                    ? <ProfileScreen user={user} onBack={() => setScreen('home')} onUserUpdated={onUserUpdated} mustChangePassword />
-                    : <ProfileScreen user={user} onBack={() => setScreen('home')} onUserUpdated={onUserUpdated} />}
+                    ? <ProfileScreen user={user} onBack={() => setScreen('home')} onUserUpdated={onUserUpdated} mustChangePassword themeMode={themeMode} onThemeChange={changeTheme} />
+                    : <ProfileScreen user={user} onBack={() => setScreen('home')} onUserUpdated={onUserUpdated} themeMode={themeMode} onThemeChange={changeTheme} />}
         </View>
+        {!user.debe_cambiar_password && (
+          <TabBar user={user} screen={screen} onNavigate={(next) => setScreen(next)} bottomInset={insets.bottom} />
+        )}
       </View>
-    </SafeAreaView>
+    </InsetsSafeAreaView>
   );
 }

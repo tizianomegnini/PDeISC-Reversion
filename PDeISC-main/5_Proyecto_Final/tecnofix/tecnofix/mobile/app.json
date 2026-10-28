@@ -1,19 +1,35 @@
 {
   "expo": {
-    "name": "TecnoFix",
+    "name": "TecnoFix Soporte",
     "slug": "tecnofix-mobile",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "scheme": "tecnofix",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/tecnofix-mark.png",
+      "imageWidth": 180,
+      "resizeMode": "contain",
+      "backgroundColor": "#102A43"
+    },
     "android": {
       "package": "com.tecnofix.app",
-      "versionCode": 1,
-      "edgeToEdgeEnabled": true
+      "versionCode": 3,
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#102A43"
+      }
     },
     "plugins": [
       "expo-secure-store",
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "81628f9d-bbcf-4a63-8b75-141cb2c4307a"
+      }
+    }
   }
 }

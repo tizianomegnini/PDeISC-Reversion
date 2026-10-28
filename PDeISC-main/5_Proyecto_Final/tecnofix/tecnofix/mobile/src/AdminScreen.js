@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { adminApi, consultasApi } from './api';
-import { Button, Card, Empty, Field, Heading, Loading, Message, formatDate, fullName, statusLabel, styles } from './ui';
+import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, formatDate, fullName, statusLabel, styles } from './ui';
 
 const TABS = [
   ['resumen', 'Resumen'],
@@ -313,7 +313,7 @@ function Configuration() {
 
 export default function AdminScreen({ onOpenConsultation }) {
   const [tab, setTab] = useState('resumen');
-  return <ScrollView contentContainerStyle={styles.content}>
+  return <MotionScrollView contentContainerStyle={styles.content}>
     <Heading title="Administración" subtitle="Gestioná consultas, técnicos, locales y métricas." />
     <View style={styles.row}>{TABS.map(([id, label]) => <Button key={id} title={tab === id ? `✓ ${label}` : label} small variant={tab === id ? 'primary' : 'secondary'} onPress={() => setTab(id)} />)}</View>
     {tab === 'resumen' && <Summary onNavigate={setTab} />}
@@ -323,5 +323,5 @@ export default function AdminScreen({ onOpenConsultation }) {
     {tab === 'estadisticas' && <Statistics />}
     {tab === 'valoraciones' && <Reviews />}
     {tab === 'config' && <Configuration />}
-  </ScrollView>;
+  </MotionScrollView>;
 }
