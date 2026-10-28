@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import rateLimit from 'express-rate-limit';
 import { OAuth2Client } from 'google-auth-library';
-import { pool, audit } from '../config/db.js';
+import { pool, withTransaction, audit } from '../config/db.js';
 import { env } from '../config/env.js';
 import { ah, unauthorized, conflict, badRequest, HttpError } from '../utils/errors.js';
 import { parse, schemas } from '../utils/validate.js';
@@ -70,6 +70,53 @@ function estadoValido(state, cookieState) {
   const recibido = Buffer.from(state);
   const esperado = Buffer.from(cookieState);
   return recibido.length === esperado.length && timingSafeEqual(recibido, esperado);
+}
+function parseOAuthStateCookie(cookieState) {
+  if (typeof cookieState !== 'string') return { expectedState: null, redirectUri: null };
+  const mobile = cookieState.match(/^mobile:([a-f0-9]{64}):([A-Za-z0-9_-]+)$/);
+  if (!mobile) return { expectedState: cookieState, redirectUri: null };
+  const redirectUri = Buffer.from(mobile[2], 'base64url').toString('utf8');
+  return validMobileRedirect(redirectUri)
+    ? { expectedState: mobile[1], redirectUri }
+    : { expectedState: null, redirectUri: null };
+}
+function validMobileRedirect(value) {
+  if (typeof value !== 'string' || value.length > 500) return false;
+  try {
+    const url = new URL(value);
+    if (url.search || url.hash) return false;
+    if (url.protocol === 'tecnofix:' && url.hostname === 'oauth' && (!url.pathname || url.pathname === '/')) return true;
+    return ['exp:', 'exps:'].includes(url.protocol)
+      && !!url.hostname
+      && /\/--\/oauth\/?$/.test(url.pathname);
+  } catch {
+    return false;
+  }
+}
+function mobileOAuthUrl(redirectUri, params) {
+  const url = new URL(redirectUri);
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+  return url.toString();
+}
+function socialErrorUrl(state, error) {
+  return state.redirectUri
+    ? mobileOAuthUrl(state.redirectUri, { error })
+    : frontendLoginUrl(error);
+}
+async function finishSocialLogin(req, res, user, state) {
+  if (!state.redirectUri) {
+    abrirSesion(req, res, user);
+    return res.redirect(frontendLoginUrl());
+  }
+  const code = randomBytes(32).toString('base64url');
+  const codeHash = createHash('sha256').update(code).digest('hex');
+  await pool.execute('DELETE FROM oauth_mobile_codes WHERE expires_at <= UTC_TIMESTAMP()');
+  await pool.execute(
+    `INSERT INTO oauth_mobile_codes (code_hash, usuario_id, expires_at)
+     VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 2 MINUTE))`,
+    [codeHash, user.id],
+  );
+  return res.redirect(mobileOAuthUrl(state.redirectUri, { code }));
 }
 class GoogleLoginError extends Error {
   constructor(code) { super(code); this.code = code; }
@@ -166,6 +213,22 @@ router.get('/social/google', (_req, res, next) => {
   }));
 });
 
+router.get('/social/google/mobile', (req, res, next) => {
+  if (!googleConfigurado()) {
+    return next(new HttpError(501, 'El inicio de sesión con Google está pendiente de configuración (faltan credenciales del proveedor).'));
+  }
+  if (!validMobileRedirect(req.query.redirect_uri)) return next(new HttpError(400, 'URI de retorno móvil inválida'));
+  const state = randomBytes(32).toString('hex');
+  const redirectUri = Buffer.from(req.query.redirect_uri).toString('base64url');
+  res.cookie(GOOGLE_STATE_COOKIE, `mobile:${state}:${redirectUri}`, googleStateCookieOptions());
+  res.redirect(googleClient().generateAuthUrl({
+    access_type: 'online',
+    prompt: 'select_account',
+    scope: ['openid', 'email', 'profile'],
+    state,
+  }));
+});
+
 router.get('/social/github', (_req, res, next) => {
   if (!githubConfigurado()) {
     return next(new HttpError(501, 'El inicio de sesión con GitHub está pendiente de configuración (faltan credenciales del proveedor).'));
@@ -180,6 +243,42 @@ router.get('/social/github', (_req, res, next) => {
   res.cookie(GITHUB_STATE_COOKIE, state, githubStateCookieOptions());
   res.redirect(`https://github.com/login/oauth/authorize?${query}`);
 });
+
+router.get('/social/github/mobile', (req, res, next) => {
+  if (!githubConfigurado()) {
+    return next(new HttpError(501, 'El inicio de sesión con GitHub está pendiente de configuración (faltan credenciales del proveedor).'));
+  }
+  if (!validMobileRedirect(req.query.redirect_uri)) return next(new HttpError(400, 'URI de retorno móvil inválida'));
+  const state = randomBytes(32).toString('hex');
+  const redirectUri = Buffer.from(req.query.redirect_uri).toString('base64url');
+  const query = new URLSearchParams({
+    client_id: env.github.clientId,
+    redirect_uri: env.github.redirectUri,
+    scope: 'read:user user:email',
+    state,
+  });
+  res.cookie(GITHUB_STATE_COOKIE, `mobile:${state}:${redirectUri}`, githubStateCookieOptions());
+  res.redirect(`https://github.com/login/oauth/authorize?${query}`);
+});
+
+router.post('/social/mobile/exchange', limiter, ah(async (req, res) => {
+  const { code } = req.body || {};
+  if (typeof code !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(code)) throw badRequest('Código de inicio móvil inválido');
+  const codeHash = createHash('sha256').update(code).digest('hex');
+  const user = await withTransaction(async (conn) => {
+    const [rows] = await conn.execute(
+      `SELECT u.*, t.id AS tecnico_id FROM oauth_mobile_codes c
+       JOIN usuarios u ON u.id=c.usuario_id
+       LEFT JOIN tecnicos t ON t.usuario_id=u.id
+       WHERE c.code_hash=? AND c.expires_at > UTC_TIMESTAMP() FOR UPDATE`,
+      [codeHash],
+    );
+    if (!rows[0] || !rows[0].activo || rows[0].deleted_at) throw unauthorized('El código venció o ya fue utilizado');
+    await conn.execute('DELETE FROM oauth_mobile_codes WHERE code_hash=?', [codeHash]);
+    return rows[0];
+  });
+  res.json({ usuario: publico(user), token: signToken(user) });
+}));
 
 async function githubJson(url, options = {}) {
   const response = await fetch(url, {
@@ -270,13 +369,13 @@ async function usuarioGitHub(profile, email) {
 
 router.get('/social/github/callback', async (req, res) => {
   const state = req.query.state;
-  const expectedState = req.cookies[GITHUB_STATE_COOKIE];
+  const oauthState = parseOAuthStateCookie(req.cookies[GITHUB_STATE_COOKIE]);
   res.clearCookie(GITHUB_STATE_COOKIE, { ...githubStateCookieOptions(), maxAge: undefined });
-  if (!estadoValido(state, expectedState)) return res.redirect(frontendLoginUrl('github_state_invalid'));
+  if (!estadoValido(state, oauthState.expectedState)) return res.redirect(socialErrorUrl(oauthState, 'github_state_invalid'));
   if (req.query.error) {
-    return res.redirect(frontendLoginUrl(req.query.error === 'access_denied' ? 'github_cancelled' : 'github_failed'));
+    return res.redirect(socialErrorUrl(oauthState, req.query.error === 'access_denied' ? 'github_cancelled' : 'github_failed'));
   }
-  if (typeof req.query.code !== 'string') return res.redirect(frontendLoginUrl('github_failed'));
+  if (typeof req.query.code !== 'string') return res.redirect(socialErrorUrl(oauthState, 'github_failed'));
 
   try {
     const tokenBody = new URLSearchParams({
@@ -304,12 +403,11 @@ router.get('/social/github/callback', async (req, res) => {
     if (!verifiedEmail) throw new GitHubLoginError('github_email_missing');
 
     const usuario = await usuarioGitHub(profile, verifiedEmail.toLowerCase());
-    abrirSesion(req, res, usuario);
-    return res.redirect(frontendLoginUrl());
+    return finishSocialLogin(req, res, usuario, oauthState);
   } catch (error) {
-    if (error instanceof GitHubLoginError) return res.redirect(frontendLoginUrl(error.code));
+    if (error instanceof GitHubLoginError) return res.redirect(socialErrorUrl(oauthState, error.code));
     console.error('Falló el callback de inicio de sesión de GitHub:', error);
-    return res.redirect(frontendLoginUrl('github_failed'));
+    return res.redirect(socialErrorUrl(oauthState, 'github_failed'));
   }
 });
 
@@ -326,6 +424,24 @@ router.get('/social/facebook', (_req, res, next) => {
     state,
   });
   res.cookie(FACEBOOK_STATE_COOKIE, state, facebookStateCookieOptions());
+  res.redirect(`https://www.facebook.com/${FACEBOOK_GRAPH_VERSION}/dialog/oauth?${query}`);
+});
+
+router.get('/social/facebook/mobile', (req, res, next) => {
+  if (!facebookConfigurado()) {
+    return next(new HttpError(501, 'El inicio de sesión con Facebook está pendiente de configuración (faltan credenciales del proveedor).'));
+  }
+  if (!validMobileRedirect(req.query.redirect_uri)) return next(new HttpError(400, 'URI de retorno móvil inválida'));
+  const state = randomBytes(32).toString('hex');
+  const redirectUri = Buffer.from(req.query.redirect_uri).toString('base64url');
+  const query = new URLSearchParams({
+    client_id: env.facebook.appId,
+    redirect_uri: env.facebook.redirectUri,
+    response_type: 'code',
+    scope: 'email,public_profile',
+    state,
+  });
+  res.cookie(FACEBOOK_STATE_COOKIE, `mobile:${state}:${redirectUri}`, facebookStateCookieOptions());
   res.redirect(`https://www.facebook.com/${FACEBOOK_GRAPH_VERSION}/dialog/oauth?${query}`);
 });
 
@@ -399,13 +515,13 @@ async function usuarioFacebook(profile) {
 
 router.get('/social/facebook/callback', async (req, res) => {
   const state = req.query.state;
-  const expectedState = req.cookies[FACEBOOK_STATE_COOKIE];
+  const oauthState = parseOAuthStateCookie(req.cookies[FACEBOOK_STATE_COOKIE]);
   res.clearCookie(FACEBOOK_STATE_COOKIE, { ...facebookStateCookieOptions(), maxAge: undefined });
-  if (!estadoValido(state, expectedState)) return res.redirect(frontendLoginUrl('facebook_state_invalid'));
+  if (!estadoValido(state, oauthState.expectedState)) return res.redirect(socialErrorUrl(oauthState, 'facebook_state_invalid'));
   if (req.query.error) {
-    return res.redirect(frontendLoginUrl(req.query.error === 'access_denied' ? 'facebook_cancelled' : 'facebook_failed'));
+    return res.redirect(socialErrorUrl(oauthState, req.query.error === 'access_denied' ? 'facebook_cancelled' : 'facebook_failed'));
   }
-  if (typeof req.query.code !== 'string') return res.redirect(frontendLoginUrl('facebook_failed'));
+  if (typeof req.query.code !== 'string') return res.redirect(socialErrorUrl(oauthState, 'facebook_failed'));
 
   try {
     const graphUrl = `https://graph.facebook.com/${FACEBOOK_GRAPH_VERSION}`;
@@ -435,12 +551,11 @@ router.get('/social/facebook/callback', async (req, res) => {
     if (!profile.email) throw new FacebookLoginError('facebook_email_missing');
 
     const usuario = await usuarioFacebook(profile);
-    abrirSesion(req, res, usuario);
-    return res.redirect(frontendLoginUrl());
+    return finishSocialLogin(req, res, usuario, oauthState);
   } catch (error) {
-    if (error instanceof FacebookLoginError) return res.redirect(frontendLoginUrl(error.code));
+    if (error instanceof FacebookLoginError) return res.redirect(socialErrorUrl(oauthState, error.code));
     console.error('Falló el callback de inicio de sesión de Facebook:', error);
-    return res.redirect(frontendLoginUrl('facebook_failed'));
+    return res.redirect(socialErrorUrl(oauthState, 'facebook_failed'));
   }
 });
 
@@ -522,13 +637,13 @@ async function usuarioGoogle(payload) {
 
 router.get('/social/google/callback', async (req, res) => {
   const state = req.query.state;
-  const expectedState = req.cookies[GOOGLE_STATE_COOKIE];
+  const oauthState = parseOAuthStateCookie(req.cookies[GOOGLE_STATE_COOKIE]);
   res.clearCookie(GOOGLE_STATE_COOKIE, { ...googleStateCookieOptions(), maxAge: undefined });
-  if (!estadoValido(state, expectedState)) return res.redirect(frontendLoginUrl('google_state_invalid'));
+  if (!estadoValido(state, oauthState.expectedState)) return res.redirect(socialErrorUrl(oauthState, 'google_state_invalid'));
   if (req.query.error) {
-    return res.redirect(frontendLoginUrl(req.query.error === 'access_denied' ? 'google_cancelled' : 'google_failed'));
+    return res.redirect(socialErrorUrl(oauthState, req.query.error === 'access_denied' ? 'google_cancelled' : 'google_failed'));
   }
-  if (typeof req.query.code !== 'string') return res.redirect(frontendLoginUrl('google_failed'));
+  if (typeof req.query.code !== 'string') return res.redirect(socialErrorUrl(oauthState, 'google_failed'));
 
   try {
     const client = googleClient();
@@ -540,12 +655,11 @@ router.get('/social/google/callback', async (req, res) => {
       throw new GoogleLoginError('google_email_unverified');
     }
     const usuario = await usuarioGoogle(payload);
-    abrirSesion(req, res, usuario);
-    return res.redirect(frontendLoginUrl());
+    return finishSocialLogin(req, res, usuario, oauthState);
   } catch (error) {
-    if (error instanceof GoogleLoginError) return res.redirect(frontendLoginUrl(error.code));
+    if (error instanceof GoogleLoginError) return res.redirect(socialErrorUrl(oauthState, error.code));
     console.error('Falló el callback de inicio de sesión de Google:', error);
-    return res.redirect(frontendLoginUrl('google_failed'));
+    return res.redirect(socialErrorUrl(oauthState, 'google_failed'));
   }
 });
 

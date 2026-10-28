@@ -2,7 +2,9 @@
 
 Soporte técnico con tres roles (cliente, técnico, administrador), asignación automática de consultas, mensajes y valoraciones.
 Al crear una consulta, el cliente puede dejar sin completar tipo, marca y modelo; luego puede conversar con el técnico desde el detalle de la consulta una vez asignada.
-**Todo corre en su computadora**: React (Vite) + Express + MySQL local. Sin servicios en la nube.
+En desarrollo local, el sitio usa React (Vite), Express y MySQL. Para la publicación web se puede usar Vercel/Railway; la app Android Expo está en `mobile/`.
+
+La app Android Expo/React Native está en [`mobile/`](./mobile/). Para probar con Expo Go o generar un APK mediante EAS, seguí las instrucciones de [`mobile/README.md`](./mobile/README.md).
 
 | Parte | Dirección |
 |---|---|

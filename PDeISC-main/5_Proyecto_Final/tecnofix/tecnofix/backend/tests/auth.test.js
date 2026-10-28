@@ -39,6 +39,10 @@ test('no se puede registrar un técnico o admin eligiendo el rol', async () => {
 test('login correcto, incorrecto y usuario inexistente', async () => {
   const c = await registrarCliente('login@test.local');
   assert.ok(await login('login@test.local'));
+  const mobile = await request(app).post(`${API}/auth/login`).set('X-Client', 'mobile')
+    .send({ email: 'login@test.local', password: PASSWORD });
+  assert.equal(mobile.status, 200);
+  assert.ok(mobile.body.token, 'la app móvil recibe un token para Authorization: Bearer');
   assert.equal((await request(app).post(`${API}/auth/login`).send({ email: 'login@test.local', password: 'Incorrecta1' })).status, 401);
   assert.equal((await request(app).post(`${API}/auth/login`).send({ email: 'nadie@test.local', password: PASSWORD })).status, 401);
   assert.ok(c.token);

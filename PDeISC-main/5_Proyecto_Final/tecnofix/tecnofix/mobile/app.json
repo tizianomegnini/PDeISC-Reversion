@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "TecnoFix",
+    "slug": "tecnofix-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "tecnofix",
+    "android": {
+      "package": "com.tecnofix.app",
+      "versionCode": 1,
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser"
+    ]
+  }
+}

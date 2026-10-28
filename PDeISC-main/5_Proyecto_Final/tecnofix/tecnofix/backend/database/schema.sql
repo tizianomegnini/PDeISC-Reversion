@@ -44,6 +44,15 @@ CREATE TABLE IF NOT EXISTS usuarios (
   KEY idx_usuarios_social (proveedor_social, proveedor_social_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS oauth_mobile_codes (
+  code_hash CHAR(64) NOT NULL PRIMARY KEY,
+  usuario_id INT UNSIGNED NOT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_oauth_mobile_codes_expiry (expires_at),
+  CONSTRAINT fk_oauth_mobile_codes_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS tecnicos (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT UNSIGNED NOT NULL,
