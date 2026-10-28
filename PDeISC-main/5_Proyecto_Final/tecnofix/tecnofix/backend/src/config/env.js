@@ -45,6 +45,11 @@ export const env = {
     appSecret: process.env.FACEBOOK_APP_SECRET || '',
     redirectUri: process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:3000/api/v1/auth/social/facebook/callback',
   },
+  github: {
+    clientId: process.env.GITHUB_CLIENT_ID || '',
+    clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+    redirectUri: process.env.GITHUB_REDIRECT_URI || 'http://localhost:3000/api/v1/auth/social/github/callback',
+  },
   cookie: {
     sameSite: process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === 'production' ? 'none' : 'lax'),
     secure: process.env.COOKIE_SECURE === undefined

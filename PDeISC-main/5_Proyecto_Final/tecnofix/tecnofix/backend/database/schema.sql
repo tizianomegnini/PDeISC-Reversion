@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   email VARCHAR(190) NOT NULL,
   telefono VARCHAR(40) NULL,
   password_hash VARCHAR(100) NOT NULL,
-  proveedor_social VARCHAR(20) NULL,       -- reservado: login con Google/Facebook/Apple
+  proveedor_social VARCHAR(20) NULL,       -- proveedor de login social (Google/Facebook/GitHub)
   proveedor_social_id VARCHAR(190) NULL,   -- reservado
   activo TINYINT(1) NOT NULL DEFAULT 1,
   debe_cambiar_password TINYINT(1) NOT NULL DEFAULT 0,

@@ -24,10 +24,13 @@ export const publico = (u) => ({
 
 const GOOGLE_STATE_COOKIE = 'tecnofix_google_state';
 const FACEBOOK_STATE_COOKIE = 'tecnofix_facebook_state';
+const GITHUB_STATE_COOKIE = 'tecnofix_github_state';
 const GOOGLE_STATE_MAX_AGE = 10 * 60 * 1000;
 const GOOGLE_CALLBACK_PATH = '/api/v1/auth/social/google/callback';
 const FACEBOOK_CALLBACK_PATH = '/api/v1/auth/social/facebook/callback';
+const GITHUB_CALLBACK_PATH = '/api/v1/auth/social/github/callback';
 const FACEBOOK_GRAPH_VERSION = 'v26.0';
+const GITHUB_API_VERSION = '2022-11-28';
 const googleClient = () => new OAuth2Client(
   env.google.clientId,
   env.google.clientSecret,
@@ -35,6 +38,7 @@ const googleClient = () => new OAuth2Client(
 );
 const googleConfigurado = () => !!(env.google.clientId && env.google.clientSecret);
 const facebookConfigurado = () => !!(env.facebook.appId && env.facebook.appSecret);
+const githubConfigurado = () => !!(env.github.clientId && env.github.clientSecret);
 const frontendLoginUrl = (error) => {
   const url = new URL('/login', env.frontendUrl);
   if (error) url.searchParams.set('social_error', error);
@@ -54,6 +58,13 @@ const facebookStateCookieOptions = () => ({
   path: FACEBOOK_CALLBACK_PATH,
   maxAge: GOOGLE_STATE_MAX_AGE,
 });
+const githubStateCookieOptions = () => ({
+  httpOnly: true,
+  secure: env.nodeEnv === 'production',
+  sameSite: 'lax',
+  path: GITHUB_CALLBACK_PATH,
+  maxAge: GOOGLE_STATE_MAX_AGE,
+});
 function estadoValido(state, cookieState) {
   if (typeof state !== 'string' || typeof cookieState !== 'string') return false;
   const recibido = Buffer.from(state);
@@ -64,6 +75,9 @@ class GoogleLoginError extends Error {
   constructor(code) { super(code); this.code = code; }
 }
 class FacebookLoginError extends Error {
+  constructor(code) { super(code); this.code = code; }
+}
+class GitHubLoginError extends Error {
   constructor(code) { super(code); this.code = code; }
 }
 
@@ -128,18 +142,15 @@ router.post('/change-password', authenticate({ allowPasswordChange: true }), ah(
 
 // ---- Login social ----
 const PROVEEDORES = {
-  google: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'],
-  facebook: ['FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET'],
-  apple: ['APPLE_CLIENT_ID', 'APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_PRIVATE_KEY'],
+  google: googleConfigurado,
+  facebook: facebookConfigurado,
+  github: githubConfigurado,
 };
-const configurado = (p) => p === 'google'
-  ? googleConfigurado()
-  : p === 'facebook'
-    ? facebookConfigurado()
-  : PROVEEDORES[p].every((k) => !!process.env[k]);
 
 router.get('/social', (_req, res) =>
-  res.json({ proveedores: Object.keys(PROVEEDORES).map((p) => ({ proveedor: p, configurado: configurado(p) })) }));
+  res.json({ proveedores: Object.entries(PROVEEDORES).map(([proveedor, estaConfigurado]) => ({
+    proveedor, configurado: estaConfigurado(),
+  })) }));
 
 router.get('/social/google', (_req, res, next) => {
   if (!googleConfigurado()) {
@@ -153,6 +164,153 @@ router.get('/social/google', (_req, res, next) => {
     scope: ['openid', 'email', 'profile'],
     state,
   }));
+});
+
+router.get('/social/github', (_req, res, next) => {
+  if (!githubConfigurado()) {
+    return next(new HttpError(501, 'El inicio de sesión con GitHub está pendiente de configuración (faltan credenciales del proveedor).'));
+  }
+  const state = randomBytes(32).toString('hex');
+  const query = new URLSearchParams({
+    client_id: env.github.clientId,
+    redirect_uri: env.github.redirectUri,
+    scope: 'read:user user:email',
+    state,
+  });
+  res.cookie(GITHUB_STATE_COOKIE, state, githubStateCookieOptions());
+  res.redirect(`https://github.com/login/oauth/authorize?${query}`);
+});
+
+async function githubJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': GITHUB_API_VERSION,
+      'User-Agent': 'TecnoFix',
+      ...options.headers,
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok || !data || data.message) throw new GitHubLoginError('github_failed');
+  return data;
+}
+
+async function usuarioGitHub(profile, email) {
+  const githubId = String(profile.id);
+  const buscarPorGitHub = async () => {
+    const [rows] = await pool.execute(
+      `SELECT u.*, t.id AS tecnico_id FROM usuarios u
+       LEFT JOIN tecnicos t ON t.usuario_id = u.id
+       WHERE u.proveedor_social='github' AND u.proveedor_social_id=? LIMIT 1`,
+      [githubId],
+    );
+    return rows[0];
+  };
+  const buscarPorEmail = async () => {
+    const [rows] = await pool.execute(
+      `SELECT u.*, t.id AS tecnico_id FROM usuarios u
+       LEFT JOIN tecnicos t ON t.usuario_id = u.id WHERE u.email=? LIMIT 1`,
+      [email],
+    );
+    return rows[0];
+  };
+  const validarCuenta = (usuario) => {
+    if (!usuario) throw new GitHubLoginError('github_failed');
+    if (!usuario.activo || usuario.deleted_at) throw new GitHubLoginError('account_unavailable');
+    if ((usuario.proveedor_social || usuario.proveedor_social_id)
+      && (usuario.proveedor_social !== 'github' || usuario.proveedor_social_id !== githubId)) {
+      throw new GitHubLoginError('github_account_exists');
+    }
+  };
+
+  let usuario = await buscarPorGitHub();
+  if (usuario) {
+    validarCuenta(usuario);
+    return usuario;
+  }
+  usuario = await buscarPorEmail();
+  if (usuario) {
+    validarCuenta(usuario);
+    const [result] = await pool.execute(
+      `UPDATE usuarios SET proveedor_social='github', proveedor_social_id=?
+       WHERE id=? AND proveedor_social IS NULL AND proveedor_social_id IS NULL`,
+      [githubId, usuario.id],
+    );
+    if (!result.affectedRows) usuario = await buscarPorGitHub();
+    else usuario.proveedor_social = 'github', usuario.proveedor_social_id = githubId;
+    validarCuenta(usuario);
+    return usuario;
+  }
+
+  const passwordHash = await bcrypt.hash(randomBytes(48).toString('hex'), env.bcryptRounds);
+  const nombre = (profile.name?.split(/\s+/)[0] || profile.login || email.split('@')[0]).slice(0, 80);
+  const apellido = (profile.name?.split(/\s+/).slice(1).join(' ') || '').slice(0, 80);
+  try {
+    const [result] = await pool.execute(
+      `INSERT INTO usuarios (rol, nombre, apellido, email, password_hash, proveedor_social, proveedor_social_id)
+       VALUES ('cliente',?,?,?,?, 'github',?)`,
+      [nombre, apellido, email, passwordHash, githubId],
+    );
+    const [rows] = await pool.execute(
+      `SELECT u.*, t.id AS tecnico_id FROM usuarios u
+       LEFT JOIN tecnicos t ON t.usuario_id = u.id WHERE u.id=?`,
+      [result.insertId],
+    );
+    return rows[0];
+  } catch (error) {
+    if (error.code !== 'ER_DUP_ENTRY') throw error;
+    usuario = await buscarPorGitHub() || await buscarPorEmail();
+    if (!usuario) throw error;
+    validarCuenta(usuario);
+    return usuario;
+  }
+}
+
+router.get('/social/github/callback', async (req, res) => {
+  const state = req.query.state;
+  const expectedState = req.cookies[GITHUB_STATE_COOKIE];
+  res.clearCookie(GITHUB_STATE_COOKIE, { ...githubStateCookieOptions(), maxAge: undefined });
+  if (!estadoValido(state, expectedState)) return res.redirect(frontendLoginUrl('github_state_invalid'));
+  if (req.query.error) {
+    return res.redirect(frontendLoginUrl(req.query.error === 'access_denied' ? 'github_cancelled' : 'github_failed'));
+  }
+  if (typeof req.query.code !== 'string') return res.redirect(frontendLoginUrl('github_failed'));
+
+  try {
+    const tokenBody = new URLSearchParams({
+      client_id: env.github.clientId,
+      client_secret: env.github.clientSecret,
+      redirect_uri: env.github.redirectUri,
+      code: req.query.code,
+    });
+    const token = await githubJson('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: tokenBody,
+    });
+    if (typeof token.access_token !== 'string' || token.token_type !== 'bearer') {
+      throw new GitHubLoginError('github_failed');
+    }
+
+    const authorization = { Authorization: `Bearer ${token.access_token}` };
+    const profile = await githubJson('https://api.github.com/user', { headers: authorization });
+    if (!profile.id || !profile.login) throw new GitHubLoginError('github_failed');
+    const emails = await githubJson('https://api.github.com/user/emails', { headers: authorization });
+    const verifiedEmail = Array.isArray(emails)
+      ? emails.find((item) => item.primary && item.verified && typeof item.email === 'string')?.email
+      : null;
+    if (!verifiedEmail) throw new GitHubLoginError('github_email_missing');
+
+    const usuario = await usuarioGitHub(profile, verifiedEmail.toLowerCase());
+    abrirSesion(req, res, usuario);
+    return res.redirect(frontendLoginUrl());
+  } catch (error) {
+    if (error instanceof GitHubLoginError) return res.redirect(frontendLoginUrl(error.code));
+    console.error('Falló el callback de inicio de sesión de GitHub:', error);
+    return res.redirect(frontendLoginUrl('github_failed'));
+  }
 });
 
 router.get('/social/facebook', (_req, res, next) => {
@@ -393,8 +551,8 @@ router.get('/social/google/callback', async (req, res) => {
 
 router.all('/social/:proveedor', (req, _res, next) => {
   const p = req.params.proveedor;
-  if (!PROVEEDORES[p]) return next(new HttpError(404, 'Proveedor desconocido'));
-  next(new HttpError(501, configurado(p)
+  if (!Object.hasOwn(PROVEEDORES, p)) return next(new HttpError(404, 'Proveedor desconocido'));
+  next(new HttpError(501, PROVEEDORES[p]()
     ? `El inicio de sesión con ${p} tiene credenciales cargadas pero la integración todavía no está implementada.`
     : `El inicio de sesión con ${p} está pendiente de configuración (faltan credenciales del proveedor).`));
 });

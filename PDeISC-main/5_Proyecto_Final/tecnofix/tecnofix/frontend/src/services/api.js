@@ -36,10 +36,11 @@ export const authApi = {
   updateProfile: (d) => put('/auth/me', d),
   changePassword: (d) => post('/auth/change-password', d),
   socialStart: async (proveedor) => {
-    if (!['google', 'facebook'].includes(proveedor)) return get(`/auth/social/${proveedor}`);
+    if (!['google', 'facebook', 'github'].includes(proveedor)) return get(`/auth/social/${proveedor}`);
     const { proveedores } = await get('/auth/social');
     if (!proveedores.find((item) => item.proveedor === proveedor && item.configurado)) {
-      throw new ApiError(`El inicio de sesión con ${proveedor === 'google' ? 'Google' : 'Facebook'} todavía no está configurado.`, 501);
+      const nombre = { google: 'Google', facebook: 'Facebook', github: 'GitHub' }[proveedor];
+      throw new ApiError(`El inicio de sesión con ${nombre} todavía no está configurado.`, 501);
     }
     window.location.assign(`${BASE}/auth/social/${proveedor}`);
   },

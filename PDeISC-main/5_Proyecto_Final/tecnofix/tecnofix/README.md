@@ -130,7 +130,24 @@ El callback requiere una cuenta de Google con correo verificado. Si ese correo y
 
 Facebook debe devolver un correo para crear la cuenta. Si ya existe una cuenta con ese email, el inicio de sesión se rechaza en lugar de vincularla automáticamente; ingresá con el método habitual de esa cuenta. Las cuentas nuevas se crean con rol de cliente.
 
-## 5. Pruebas automatizadas
+## 6. Configurar el inicio de sesión con GitHub en producción
+
+1. En GitHub, abrí **Settings → Developer settings → OAuth Apps → New OAuth App** (o seleccioná una OAuth App existente).
+2. Configurá **Homepage URL** como `https://p-de-isc-reversion.vercel.app` y **Authorization callback URL** con esta URL exacta:
+   `https://pdeisc-production-182f.up.railway.app/api/v1/auth/social/github/callback`
+3. Generá un client secret y configurá en el servicio **backend** de Railway:
+   ```
+   GITHUB_CLIENT_ID=<Client ID de la OAuth App>
+   GITHUB_CLIENT_SECRET=<Client secret de la OAuth App>
+   GITHUB_REDIRECT_URI=https://pdeisc-production-182f.up.railway.app/api/v1/auth/social/github/callback
+   FRONTEND_URL=https://p-de-isc-reversion.vercel.app
+   ```
+   No subas el secreto a Git ni lo pongas en Vercel. Railway debe reiniciar el backend después de guardar estas variables.
+4. El flujo solicita `read:user` y `user:email` para obtener el perfil y un correo principal verificado. Si GitHub no devuelve un correo principal verificado, agregá y verificá un email en la cuenta de GitHub e intentá otra vez.
+
+Si el correo verificado ya corresponde a una cuenta sin proveedor social vinculado, se vincula a GitHub. Si ya está asociado a otro proveedor, el acceso se rechaza sin vincular automáticamente. Las cuentas nuevas se crean como clientes.
+
+## 7. Pruebas automatizadas
 
 Con MySQL en ejecución:
 
@@ -142,7 +159,7 @@ npm test
 Usan una base **separada** (`tecnofix_test`, configurable con `DB_NAME_TEST`) que se borra y recrea en cada corrida; el código se niega a borrar cualquier base cuyo nombre no termine en `_test`.
 Cubren: registro/login/JWT/cookies, cambio de contraseña obligatorio, permisos por rol y aislamiento entre técnicos y clientes, prioridad de asignación, técnicos nuevos, límites, cola de pendientes y reintentos, liberación de cupo, **concurrencia (12 altas simultáneas sin superar los límites)**, transiciones de estado, mensajes y valoraciones (una sola por consulta, incluso en paralelo).
 
-## 6. Verificación manual sugerida
+## 8. Verificación manual sugerida
 
 1. Registre un cliente → cree una consulta → debe verla **asignada** con técnico y local.
 2. Ingrese como ese técnico (cambie su contraseña inicial) → *Comenzar atención*, escriba un mensaje, *Finalizar*.
@@ -150,7 +167,7 @@ Cubren: registro/login/JWT/cookies, cambio de contraseña obligatorio, permisos 
 4. Como administrador: cree/edite/desactive/elimine técnicos, cree locales, cambie un límite a 1 y cree 2 consultas → la segunda queda en *Pendientes*; finalice la primera y la pendiente se asigna sola.
 5. Reinicie backend, frontend y la PC: los datos siguen en MySQL.
 
-## 7. Decisiones técnicas (documentadas porque faltaba información)
+## 9. Decisiones técnicas (documentadas porque faltaba información)
 
 - **JavaScript** en todo el proyecto (no TypeScript), para simplificar la primera etapa.
 - **`bcryptjs`** en lugar de `bcrypt`: es bcrypt en JavaScript puro (mismo algoritmo y formato de hash) y evita compilar módulos nativos en Windows.
@@ -163,11 +180,11 @@ Cubren: registro/login/JWT/cookies, cambio de contraseña obligatorio, permisos 
 - Al **finalizar o cancelar**, al **subir un límite**, **crear/rehabilitar un técnico** o reintentar manualmente, se intentan asignar las pendientes automáticamente (las más antiguas primero).
 - **Desactivar/eliminar un técnico** devuelve sus consultas activas a *pendiente* para reasignarlas. La eliminación es lógica (`deleted_at`): se conserva todo el historial.
 - **Eliminar un local** = desactivarlo (tiene técnicos y consultas asociados).
-- **Login social**: la estructura está lista (`/auth/social/:proveedor`, columnas reservadas, variables en `.env.example`) pero **responde 501 “pendiente de configuración”**; no se simula ninguna autenticación.
+- **Login social**: Google, Facebook y GitHub usan OAuth con validación de `state`; sus credenciales se configuran mediante variables de entorno y las cuentas se guardan como clientes.
 - Contraseñas: mínimo 8 caracteres con al menos una letra y un número.
 - El administrador puede restablecer la contraseña de un técnico desde **Técnicos → Editar → Restablecer contraseña**. La nueva clave es provisoria y el técnico debe cambiarla al iniciar sesión.
 
-## 8. Estructura
+## 10. Estructura
 
 ```
 backend/
@@ -183,7 +200,7 @@ docs/API.md                endpoints
 docs/FUTURO.md             Vercel, Railway, Expo / APK
 ```
 
-## 9. Problemas frecuentes
+## 11. Problemas frecuentes
 
 | Síntoma | Solución |
 |---|---|
