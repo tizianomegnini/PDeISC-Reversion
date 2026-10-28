@@ -21,6 +21,11 @@ export default function Login() {
     account_provider_mismatch: 'Este correo ya está asociado a otro método de inicio de sesión.',
     google_state_invalid: 'La solicitud de inicio de sesión venció o no es válida. Intentá nuevamente.',
     google_failed: 'No se pudo iniciar sesión con Google. Intentá nuevamente.',
+    facebook_cancelled: 'Cancelaste el inicio de sesión con Facebook.',
+    facebook_email_missing: 'Facebook no compartió un correo. Revisá los permisos de la app o probá con otra cuenta.',
+    facebook_account_exists: 'Ya existe una cuenta con ese correo. Ingresá con tu método habitual; no vinculamos cuentas automáticamente.',
+    facebook_state_invalid: 'La solicitud de inicio de sesión venció o no es válida. Intentá nuevamente.',
+    facebook_failed: 'No se pudo iniciar sesión con Facebook. Intentá nuevamente.',
   };
   const socialError = socialErrors[new URLSearchParams(location.search).get('social_error')];
   if (user) return <Navigate to={user.debe_cambiar_password ? '/cambiar-password' : homePorRol[user.rol]} replace />;
@@ -50,7 +55,7 @@ export default function Login() {
       </form>
       <p>¿No tiene cuenta? <Link to="/registro">Registrarse como cliente</Link></p>
       <hr />
-      <p className="muted">También podés ingresar con una cuenta de Google:</p>
+      <p className="muted">También podés ingresar con una cuenta de Google o Facebook:</p>
       <div className="row">
         {['google', 'facebook', 'apple'].map((p) => <button key={p} type="button" className="secondary" onClick={() => social(p)}>{p[0].toUpperCase() + p.slice(1)}</button>)}
       </div>

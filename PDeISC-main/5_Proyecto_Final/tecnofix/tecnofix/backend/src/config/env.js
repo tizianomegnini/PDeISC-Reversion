@@ -40,6 +40,11 @@ export const env = {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     redirectUri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/v1/auth/social/google/callback',
   },
+  facebook: {
+    appId: process.env.FACEBOOK_APP_ID || '',
+    appSecret: process.env.FACEBOOK_APP_SECRET || '',
+    redirectUri: process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:3000/api/v1/auth/social/facebook/callback',
+  },
   cookie: {
     sameSite: process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === 'production' ? 'none' : 'lax'),
     secure: process.env.COOKIE_SECURE === undefined

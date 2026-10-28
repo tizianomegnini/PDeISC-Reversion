@@ -113,6 +113,23 @@ Los clientes nuevos se registran desde la pantalla *Registrarse*.
 
 El callback requiere una cuenta de Google con correo verificado. Si ese correo ya existe en TecnoFix y no está vinculado a otro proveedor, se vincula a Google; si es nuevo, se crea una cuenta de cliente.
 
+## 5. Configurar el inicio de sesión con Facebook en producción
+
+1. En Meta for Developers, creá/configurá la app y agregá el producto **Facebook Login** para web. En los ajustes de Facebook Login, activá OAuth de cliente web y agregá como URI de redireccionamiento OAuth válida:
+   `https://pdeisc-production-182f.up.railway.app/api/v1/auth/social/facebook/callback`
+2. En los ajustes básicos de la app, configurá el dominio de la app como `p-de-isc-reversion.vercel.app`. La URL del sitio debe ser `https://p-de-isc-reversion.vercel.app`.
+3. En las variables del servicio **backend** de Railway, configurá:
+   ```
+   FACEBOOK_APP_ID=<ID de la app de Meta>
+   FACEBOOK_APP_SECRET=<secreto de la app de Meta>
+   FACEBOOK_REDIRECT_URI=https://pdeisc-production-182f.up.railway.app/api/v1/auth/social/facebook/callback
+   FRONTEND_URL=https://p-de-isc-reversion.vercel.app
+   ```
+   No subas el secreto a Git ni lo pongas en Vercel. Si la app está en modo desarrollo, iniciá sesión con una cuenta que tenga rol de administrador, desarrollador o tester de esa app.
+4. Después de guardar las variables, esperá a que Railway reinicie el backend. Vercel ya dirige el botón de Facebook al backend actualizado; si el frontend no está desplegado con ese cambio, publicá también el último commit de Vercel.
+
+Facebook debe devolver un correo para crear la cuenta. Si ya existe una cuenta con ese email, el inicio de sesión se rechaza en lugar de vincularla automáticamente; ingresá con el método habitual de esa cuenta. Las cuentas nuevas se crean con rol de cliente.
+
 ## 5. Pruebas automatizadas
 
 Con MySQL en ejecución:
