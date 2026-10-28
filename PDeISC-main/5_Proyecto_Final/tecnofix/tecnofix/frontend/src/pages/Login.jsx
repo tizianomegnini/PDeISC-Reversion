@@ -9,10 +9,20 @@ export default function Login() {
   const { user, login } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
-  const { state } = useLocation();
+  const location = useLocation();
+  const { state } = location;
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const socialErrors = {
+    google_cancelled: 'Cancelaste el inicio de sesión con Google.',
+    google_email_unverified: 'Google necesita confirmar tu dirección de correo.',
+    account_unavailable: 'Esta cuenta está desactivada o ya no está disponible.',
+    account_provider_mismatch: 'Este correo ya está asociado a otro método de inicio de sesión.',
+    google_state_invalid: 'La solicitud de inicio de sesión venció o no es válida. Intentá nuevamente.',
+    google_failed: 'No se pudo iniciar sesión con Google. Intentá nuevamente.',
+  };
+  const socialError = socialErrors[new URLSearchParams(location.search).get('social_error')];
   if (user) return <Navigate to={user.debe_cambiar_password ? '/cambiar-password' : homePorRol[user.rol]} replace />;
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -31,6 +41,7 @@ export default function Login() {
   return (
     <div className="card" style={{ maxWidth: 460, margin: '2rem auto' }}>
       <h1>Ingresar</h1>
+      {socialError && <div className="alert error" role="alert">{socialError}</div>}
       <form onSubmit={enviar} className="stack">
         <label>Email<input type="email" value={form.email} onChange={set('email')} required autoComplete="username" /></label>
         <label>Contraseña<input type="password" value={form.password} onChange={set('password')} required autoComplete="current-password" /></label>
@@ -39,7 +50,7 @@ export default function Login() {
       </form>
       <p>¿No tiene cuenta? <Link to="/registro">Registrarse como cliente</Link></p>
       <hr />
-      <p className="muted">Inicio de sesión con redes (pendiente de configuración de los proveedores):</p>
+      <p className="muted">También podés ingresar con una cuenta de Google:</p>
       <div className="row">
         {['google', 'facebook', 'apple'].map((p) => <button key={p} type="button" className="secondary" onClick={() => social(p)}>{p[0].toUpperCase() + p.slice(1)}</button>)}
       </div>

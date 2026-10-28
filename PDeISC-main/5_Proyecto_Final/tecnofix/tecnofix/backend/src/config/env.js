@@ -12,7 +12,7 @@ function required(name) {
 
 const corsOrigins = new Set([
   'http://localhost:5173',
-  'https://p-de-isc-6uxr.vercel.app',
+  'https://p-de-isc-reversion.vercel.app',
   ...(process.env.CORS_ORIGINS || '').split(',').map((origin) => origin.trim()).filter(Boolean),
 ]);
 
@@ -34,6 +34,12 @@ export const env = {
   jwtSecret: isTest ? process.env.JWT_SECRET || 'test-secret-solo-para-pruebas' : required('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '8h',
   bcryptRounds: isTest ? 4 : Number(process.env.BCRYPT_ROUNDS || 12),
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID || '',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    redirectUri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/v1/auth/social/google/callback',
+  },
   cookie: {
     sameSite: process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === 'production' ? 'none' : 'lax'),
     secure: process.env.COOKIE_SECURE === undefined

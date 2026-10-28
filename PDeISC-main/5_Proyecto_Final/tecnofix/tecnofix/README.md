@@ -2,10 +2,6 @@
 
 Soporte técnico con tres roles (cliente, técnico, administrador), asignación automática de consultas, mensajes y valoraciones.
 Al crear una consulta, el cliente puede dejar sin completar tipo, marca y modelo; luego puede conversar con el técnico desde el detalle de la consulta una vez asignada.
-<<<<<<< HEAD
-El chat permite elegir o tomar una foto JPG/PNG/WEBP de hasta 5 MB por mensaje. Las fotos se guardan temporalmente durante la ejecución del proceso; si Railway reinicia o cambia de instancia, el chat conserva el aviso “Foto enviada”, pero no la foto.
-=======
->>>>>>> parent of 42f1ba7 (Intentodeenviodearchivos)
 **Todo corre en su computadora**: React (Vite) + Express + MySQL local. Sin servicios en la nube.
 
 | Parte | Dirección |
@@ -94,7 +90,30 @@ Abra http://localhost:5173 e ingrese con las credenciales de `backend\seed-crede
 (administrador: `admin@tecnofix.local`; técnicos: `tecnico1@tecnofix.local` … `tecnico15@tecnofix.local`; cliente demo: `cliente@tecnofix.local`).
 Los clientes nuevos se registran desde la pantalla *Registrarse*.
 
-## 4. Pruebas automatizadas
+## 4. Configurar el inicio de sesión con Google en producción
+
+1. En Google Cloud Console, configurá la pantalla de consentimiento OAuth y creá un cliente OAuth de tipo **Aplicación web**.
+   Si la aplicación queda en modo de prueba, agregá las cuentas que la van a probar como usuarios de prueba.
+2. Agregá como URI de redirección autorizada la URL del callback del backend, exactamente:
+   `https://pdeisc-production-182f.up.railway.app/api/v1/auth/social/google/callback`
+   Si Railway muestra otro dominio público para el backend, usá ese dominio en su lugar.
+3. En las variables del servicio **backend** de Railway, configurá:
+   ```
+   GOOGLE_CLIENT_ID=<ID del cliente OAuth>
+   GOOGLE_CLIENT_SECRET=<secreto del cliente OAuth>
+   GOOGLE_REDIRECT_URI=https://pdeisc-production-182f.up.railway.app/api/v1/auth/social/google/callback
+   FRONTEND_URL=https://p-de-isc-reversion.vercel.app
+   CORS_ORIGINS=https://p-de-isc-reversion.vercel.app
+   NODE_ENV=production
+   COOKIE_SAMESITE=none
+   COOKIE_SECURE=true
+   ```
+   No subas el secreto a Git ni lo pongas en Vercel. Railway debe reiniciar el backend después de guardar estas variables.
+4. En Vercel, `VITE_API_URL` debe apuntar al backend y terminar en `/api/v1`; luego hacé un nuevo deploy del frontend.
+
+El callback requiere una cuenta de Google con correo verificado. Si ese correo ya existe en TecnoFix y no está vinculado a otro proveedor, se vincula a Google; si es nuevo, se crea una cuenta de cliente.
+
+## 5. Pruebas automatizadas
 
 Con MySQL en ejecución:
 
@@ -106,7 +125,7 @@ npm test
 Usan una base **separada** (`tecnofix_test`, configurable con `DB_NAME_TEST`) que se borra y recrea en cada corrida; el código se niega a borrar cualquier base cuyo nombre no termine en `_test`.
 Cubren: registro/login/JWT/cookies, cambio de contraseña obligatorio, permisos por rol y aislamiento entre técnicos y clientes, prioridad de asignación, técnicos nuevos, límites, cola de pendientes y reintentos, liberación de cupo, **concurrencia (12 altas simultáneas sin superar los límites)**, transiciones de estado, mensajes y valoraciones (una sola por consulta, incluso en paralelo).
 
-## 5. Verificación manual sugerida
+## 6. Verificación manual sugerida
 
 1. Registre un cliente → cree una consulta → debe verla **asignada** con técnico y local.
 2. Ingrese como ese técnico (cambie su contraseña inicial) → *Comenzar atención*, escriba un mensaje, *Finalizar*.
@@ -114,7 +133,7 @@ Cubren: registro/login/JWT/cookies, cambio de contraseña obligatorio, permisos 
 4. Como administrador: cree/edite/desactive/elimine técnicos, cree locales, cambie un límite a 1 y cree 2 consultas → la segunda queda en *Pendientes*; finalice la primera y la pendiente se asigna sola.
 5. Reinicie backend, frontend y la PC: los datos siguen en MySQL.
 
-## 6. Decisiones técnicas (documentadas porque faltaba información)
+## 7. Decisiones técnicas (documentadas porque faltaba información)
 
 - **JavaScript** en todo el proyecto (no TypeScript), para simplificar la primera etapa.
 - **`bcryptjs`** en lugar de `bcrypt`: es bcrypt en JavaScript puro (mismo algoritmo y formato de hash) y evita compilar módulos nativos en Windows.
@@ -131,7 +150,7 @@ Cubren: registro/login/JWT/cookies, cambio de contraseña obligatorio, permisos 
 - Contraseñas: mínimo 8 caracteres con al menos una letra y un número.
 - El administrador puede restablecer la contraseña de un técnico desde **Técnicos → Editar → Restablecer contraseña**. La nueva clave es provisoria y el técnico debe cambiarla al iniciar sesión.
 
-## 7. Estructura
+## 8. Estructura
 
 ```
 backend/
@@ -147,7 +166,7 @@ docs/API.md                endpoints
 docs/FUTURO.md             Vercel, Railway, Expo / APK
 ```
 
-## 8. Problemas frecuentes
+## 9. Problemas frecuentes
 
 | Síntoma | Solución |
 |---|---|

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 import rateLimit from 'express-rate-limit';
+import { OAuth2Client } from 'google-auth-library';
 import { pool, audit } from '../config/db.js';
 import { env } from '../config/env.js';
 import { ah, unauthorized, conflict, badRequest, HttpError } from '../utils/errors.js';
@@ -19,6 +21,37 @@ export const publico = (u) => ({
   id: u.id, rol: u.rol, nombre: u.nombre, apellido: u.apellido, email: u.email, telefono: u.telefono ?? null,
   tecnico_id: u.tecnico_id ?? null, debe_cambiar_password: !!u.debe_cambiar_password,
 });
+
+const GOOGLE_STATE_COOKIE = 'tecnofix_google_state';
+const GOOGLE_STATE_MAX_AGE = 10 * 60 * 1000;
+const GOOGLE_CALLBACK_PATH = '/api/v1/auth/social/google/callback';
+const googleClient = () => new OAuth2Client(
+  env.google.clientId,
+  env.google.clientSecret,
+  env.google.redirectUri,
+);
+const googleConfigurado = () => !!(env.google.clientId && env.google.clientSecret);
+const frontendLoginUrl = (error) => {
+  const url = new URL('/login', env.frontendUrl);
+  if (error) url.searchParams.set('social_error', error);
+  return url.toString();
+};
+const googleStateCookieOptions = () => ({
+  httpOnly: true,
+  secure: env.nodeEnv === 'production',
+  sameSite: 'lax',
+  path: GOOGLE_CALLBACK_PATH,
+  maxAge: GOOGLE_STATE_MAX_AGE,
+});
+function estadoValido(state, cookieState) {
+  if (typeof state !== 'string' || typeof cookieState !== 'string') return false;
+  const recibido = Buffer.from(state);
+  const esperado = Buffer.from(cookieState);
+  return recibido.length === esperado.length && timingSafeEqual(recibido, esperado);
+}
+class GoogleLoginError extends Error {
+  constructor(code) { super(code); this.code = code; }
+}
 
 function abrirSesion(req, res, u) {
   const token = signToken(u);
@@ -79,16 +112,137 @@ router.post('/change-password', authenticate({ allowPasswordChange: true }), ah(
   res.json({ usuario: publico({ ...req.user, debe_cambiar_password: 0 }) });
 }));
 
-// ---- Login social: estructura lista, proveedores SIN configurar (no se simula ningún login exitoso) ----
+// ---- Login social ----
 const PROVEEDORES = {
   google: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'],
   facebook: ['FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET'],
   apple: ['APPLE_CLIENT_ID', 'APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_PRIVATE_KEY'],
 };
-const configurado = (p) => PROVEEDORES[p].every((k) => !!process.env[k]);
+const configurado = (p) => p === 'google'
+  ? googleConfigurado()
+  : PROVEEDORES[p].every((k) => !!process.env[k]);
 
 router.get('/social', (_req, res) =>
   res.json({ proveedores: Object.keys(PROVEEDORES).map((p) => ({ proveedor: p, configurado: configurado(p) })) }));
+
+router.get('/social/google', (_req, res, next) => {
+  if (!googleConfigurado()) {
+    return next(new HttpError(501, 'El inicio de sesión con Google está pendiente de configuración (faltan credenciales del proveedor).'));
+  }
+  const state = randomBytes(32).toString('hex');
+  res.cookie(GOOGLE_STATE_COOKIE, state, googleStateCookieOptions());
+  res.redirect(googleClient().generateAuthUrl({
+    access_type: 'online',
+    prompt: 'select_account',
+    scope: ['openid', 'email', 'profile'],
+    state,
+  }));
+});
+
+async function usuarioGoogle(payload) {
+  const email = payload.email.toLowerCase();
+  const sub = payload.sub;
+  const buscarPorGoogle = async () => {
+    const [rows] = await pool.execute(
+      `SELECT u.*, t.id AS tecnico_id FROM usuarios u
+       LEFT JOIN tecnicos t ON t.usuario_id = u.id
+       WHERE u.proveedor_social='google' AND u.proveedor_social_id=? LIMIT 1`,
+      [sub],
+    );
+    return rows[0];
+  };
+  const buscarPorEmail = async () => {
+    const [rows] = await pool.execute(
+      `SELECT u.*, t.id AS tecnico_id FROM usuarios u
+       LEFT JOIN tecnicos t ON t.usuario_id = u.id WHERE u.email=? LIMIT 1`,
+      [email],
+    );
+    return rows[0];
+  };
+  const validarCuenta = (usuario) => {
+    if (!usuario) throw new GoogleLoginError('google_failed');
+    if (!usuario.activo || usuario.deleted_at) throw new GoogleLoginError('account_unavailable');
+    if ((usuario.proveedor_social || usuario.proveedor_social_id)
+      && (usuario.proveedor_social !== 'google' || usuario.proveedor_social_id !== sub)) {
+      throw new GoogleLoginError('account_provider_mismatch');
+    }
+  };
+  const buscarPorId = async (id) => {
+    const [rows] = await pool.execute(
+      `SELECT u.*, t.id AS tecnico_id FROM usuarios u
+       LEFT JOIN tecnicos t ON t.usuario_id = u.id WHERE u.id=? LIMIT 1`,
+      [id],
+    );
+    return rows[0];
+  };
+
+  let usuario = await buscarPorGoogle();
+  if (usuario) validarCuenta(usuario);
+  if (!usuario) {
+    usuario = await buscarPorEmail();
+    if (usuario) validarCuenta(usuario);
+    if (!usuario) {
+      const passwordHash = await bcrypt.hash(randomBytes(48).toString('hex'), env.bcryptRounds);
+      const nombre = (payload.given_name || payload.name?.split(/\s+/)[0] || email.split('@')[0]).slice(0, 80);
+      const apellido = (payload.family_name || payload.name?.split(/\s+/).slice(1).join(' ') || '').slice(0, 80);
+      try {
+        const [result] = await pool.execute(
+          `INSERT INTO usuarios (rol, nombre, apellido, email, password_hash, proveedor_social, proveedor_social_id)
+           VALUES ('cliente',?,?,?,?, 'google',?)`,
+          [nombre, apellido, email, passwordHash, sub],
+        );
+        usuario = { id: result.insertId };
+      } catch (error) {
+        if (error.code !== 'ER_DUP_ENTRY') throw error;
+        usuario = await buscarPorGoogle() || await buscarPorEmail();
+        if (!usuario) throw error;
+        validarCuenta(usuario);
+      }
+    }
+    if (usuario.proveedor_social == null && usuario.proveedor_social_id == null) {
+      const [result] = await pool.execute(
+        `UPDATE usuarios SET proveedor_social='google', proveedor_social_id=?
+         WHERE id=? AND proveedor_social IS NULL AND proveedor_social_id IS NULL`,
+        [sub, usuario.id],
+      );
+      if (!result.affectedRows) usuario = await buscarPorGoogle() || await buscarPorEmail();
+    }
+  }
+
+  if (!usuario) throw new GoogleLoginError('google_failed');
+  usuario = await buscarPorId(usuario.id);
+  validarCuenta(usuario);
+  return usuario;
+}
+
+router.get('/social/google/callback', async (req, res) => {
+  const state = req.query.state;
+  const expectedState = req.cookies[GOOGLE_STATE_COOKIE];
+  res.clearCookie(GOOGLE_STATE_COOKIE, { ...googleStateCookieOptions(), maxAge: undefined });
+  if (!estadoValido(state, expectedState)) return res.redirect(frontendLoginUrl('google_state_invalid'));
+  if (req.query.error) {
+    return res.redirect(frontendLoginUrl(req.query.error === 'access_denied' ? 'google_cancelled' : 'google_failed'));
+  }
+  if (typeof req.query.code !== 'string') return res.redirect(frontendLoginUrl('google_failed'));
+
+  try {
+    const client = googleClient();
+    const { tokens } = await client.getToken(req.query.code);
+    if (!tokens.id_token) throw new GoogleLoginError('google_failed');
+    const ticket = await client.verifyIdToken({ idToken: tokens.id_token, audience: env.google.clientId });
+    const payload = ticket.getPayload();
+    if (!payload?.sub || !payload.email || payload.email_verified !== true) {
+      throw new GoogleLoginError('google_email_unverified');
+    }
+    const usuario = await usuarioGoogle(payload);
+    abrirSesion(req, res, usuario);
+    return res.redirect(frontendLoginUrl());
+  } catch (error) {
+    if (error instanceof GoogleLoginError) return res.redirect(frontendLoginUrl(error.code));
+    console.error('Falló el callback de inicio de sesión de Google:', error);
+    return res.redirect(frontendLoginUrl('google_failed'));
+  }
+});
 
 router.all('/social/:proveedor', (req, _res, next) => {
   const p = req.params.proveedor;

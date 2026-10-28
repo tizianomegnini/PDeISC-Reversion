@@ -35,7 +35,14 @@ export const authApi = {
   logout: () => post('/auth/logout'),
   updateProfile: (d) => put('/auth/me', d),
   changePassword: (d) => post('/auth/change-password', d),
-  socialStart: (proveedor) => get(`/auth/social/${proveedor}`), // hoy responde 501: pendiente de configuración
+  socialStart: async (proveedor) => {
+    if (proveedor !== 'google') return get(`/auth/social/${proveedor}`);
+    const { proveedores } = await get('/auth/social');
+    if (!proveedores.find((item) => item.proveedor === 'google' && item.configurado)) {
+      throw new ApiError('El inicio de sesión con Google todavía no está configurado.', 501);
+    }
+    window.location.assign(`${BASE}/auth/social/google`);
+  },
 };
 export const consultasApi = {
   list: (estado) => get(`/consultas${estado ? `?estado=${estado}` : ''}`),
