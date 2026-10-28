@@ -1,0 +1,25 @@
+/* Custom tweaks para complementar Bootstrap */
+
+/* Caja interactiva del Componente 1 */
+.mouse-test-box {
+    border: 2px dashed #0dcaf0;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s ease;
+}
+
+/* Indicador flotante del Componente 5 */
+.scroll-counter {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+}
+
+/* Opcional: Asegura que la barra lateral ocupe buena altura en pantallas grandes */
+@media (min-width: 768px) {
+    .sidebar-border {
+        border-right: 1px solid var(--bs-border-color);
+        min-height: 85vh;
+    }
+}

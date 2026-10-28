@@ -1,0 +1,24 @@
+{
+  "name": "r1-actividades",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "actividad-1-hola-mundo",
+    "actividad-2-tarjeta",
+    "actividad-3-contador",
+    "actividad-4-lista-tareas",
+    "actividad-5-formulario"
+  ],
+  "scripts": {
+    "dev": "concurrently -n a1,a2,a3,a4,a5 -c magenta,blue,green,yellow,cyan \"npm run dev -w actividad-1-hola-mundo\" \"npm run dev -w actividad-2-tarjeta\" \"npm run dev -w actividad-3-contador\" \"npm run dev -w actividad-4-lista-tareas\" \"npm run dev -w actividad-5-formulario\"",
+    "build": "npm run build --workspaces",
+    "dev:1": "npm run dev -w actividad-1-hola-mundo",
+    "dev:2": "npm run dev -w actividad-2-tarjeta",
+    "dev:3": "npm run dev -w actividad-3-contador",
+    "dev:4": "npm run dev -w actividad-4-lista-tareas",
+    "dev:5": "npm run dev -w actividad-5-formulario"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}

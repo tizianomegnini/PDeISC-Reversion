@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componente 5 - Scroll</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+    <div class="container-fluid px-4 py-3">
+        <div class="row g-4">
+            
+            <div class="col-12 col-md-4 col-lg-3 sidebar-border">
+                <div class="d-flex justify-content-between align-items-center gap-2 d-md-none mb-3 pb-3 border-bottom">
+                    <select id="component-selector" class="form-select form-select-lg">
+                        <option value="/pages/menu.html">🏠 Inicio / Menú Principal</option>
+                        <option value="/pages/componente1.html">Comp. 1: Eventos de Mouse</option>
+                        <option value="/pages/componente2.html">Comp. 2: Eventos de Teclado</option>
+                        <option value="/pages/componente3.html">Comp. 3: Eventos de Formulario</option>
+                        <option value="/pages/componente4.html">Comp. 4: Eventos de Foco</option>
+                        <option value="/pages/componente5.html" selected>Comp. 5: Eventos de Scroll</option>
+                    </select>
+                    <button class="btn btn-outline-secondary theme-toggle py-2 px-3">🌓</button>
+                </div>
+                <div class="d-none d-md-block pe-2">
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                        <span class="fw-bold fs-5">🕹️ Menú Eventos</span>
+                        <button class="btn btn-sm btn-outline-secondary theme-toggle">🌓</button>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="/pages/menu.html" class="btn btn-outline-secondary text-start">🏠 Inicio</a>
+                        <a href="/pages/componente1.html" class="btn btn-outline-secondary text-start">Comp. 1: Mouse</a>
+                        <a href="/pages/componente2.html" class="btn btn-outline-secondary text-start">Comp. 2: Teclado</a>
+                        <a href="/pages/componente3.html" class="btn btn-outline-secondary text-start">Comp. 3: Formulario</a>
+                        <a href="/pages/componente4.html" class="btn btn-outline-secondary text-start">Comp. 4: Foco</a>
+                        <a href="/pages/componente5.html" class="btn btn-info text-dark fw-bold text-start">Comp. 5: Scroll</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-8 col-lg-9">
+                <main class="ps-md-2" style="min-height: 140vh;">
+                    <h2 class="fw-bold">Componente 5: Eventos de Ventana (Scroll)</h2>
+                    <p class="text-muted">Usa la rueda del ratón hacia abajo para moverte por la página.</p>
+                    
+                    <div class="card p-4 my-4 shadow-sm target-component">
+                        <h5 class="card-title text-secondary">Monitor de Scroll Local</h5>
+                        <p class="text-secondary m-0">Sigue bajando por el body del documento para revisar el medidor flotante inferior...</p>
+                    </div>
+                    
+                    <div id="scroll-log" class="badge bg-info p-3 fs-6 shadow scroll-counter rounded-pill text-dark">
+                        Scroll: 0px
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top">
+                        <button class="btn btn-outline-primary btn-count-nodes fw-bold btn-sm">
+                            🔍 Pulsar para contar hijos de este componente
+                        </button>
+                        <div class="node-count-display alert alert-success d-none mt-2 fw-bold" role="alert"></div>
+                    </div>
+                </main>
+            </div>
+
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/scripts/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+/* =========================
+   GENERAL
+========================= */
+
+body {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.modo-claro {
+  background-color: #f5f7fb;
+  color: #212529;
+}
+
+.modo-oscuro {
+  background-color: #121212;
+  color: #f1f1f1;
+}
+
+
+/* =========================
+   ENCABEZADO
+========================= */
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+
+/* =========================
+   TARJETAS
+========================= */
+
+.task-card {
+  border: none;
+  border-radius: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.task-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.13);
+}
+
+.task-title {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.task-description {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+  max-height: 100px;
+  overflow: hidden;
+}
+
+
+/* =========================
+   DETALLE
+========================= */
+
+.detail-card {
+  width: 100%;
+  border-radius: 18px;
+  padding: clamp(20px, 4vw, 50px);
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.detail-title {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.detail-content {
+  width: 100%;
+}
+
+.detail-section h5 {
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.description-box {
+  width: 100%;
+  max-width: 100%;
+  line-height: 1.7;
+  font-size: 1.05rem;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
+
+  background: rgba(127, 127, 127, 0.08);
+  border-radius: 12px;
+
+  padding: 20px;
+
+  overflow-x: auto;
+}
+
+.detail-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  margin-top: 35px;
+}
+
+.detail-info h6 {
+  font-weight: 700;
+}
+
+.detail-info p {
+  color: #6c757d;
+}
+
+
+/* =========================
+   CREAR TAREA
+========================= */
+
+.create-page {
+  width: 100%;
+  min-height: calc(100vh - 130px);
+
+  padding: clamp(20px, 4vw, 50px);
+
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.8);
+
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+}
+
+.create-header {
+  margin-bottom: 40px;
+}
+
+.create-form {
+  width: 100%;
+}
+
+.description-input {
+  resize: vertical;
+  min-height: 250px;
+}
+
+
+/* =========================
+   ESTADO VACÍO
+========================= */
+
+.empty-state {
+  min-height: 400px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+
+  border-radius: 18px;
+  padding: 40px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 15px;
+}
+
+
+/* =========================
+   BOTONES
+========================= */
+
+.btn {
+  border-radius: 10px;
+}
+
+
+/* =========================
+   MODO OSCURO
+========================= */
+
+.modo-oscuro .task-card,
+.modo-oscuro .detail-card,
+.modo-oscuro .create-page {
+  background-color: #1e1e1e;
+  color: #f1f1f1;
+}
+
+.modo-oscuro .text-secondary {
+  color: #b5b5b5 !important;
+}
+
+.modo-oscuro .card-text {
+  color: #c8c8c8 !important;
+}
+
+.modo-oscuro .form-control {
+  background-color: #2a2a2a;
+  color: #f1f1f1;
+  border-color: #444;
+}
+
+.modo-oscuro .form-control::placeholder {
+  color: #999;
+}
+
+.modo-oscuro .form-control:disabled {
+  background-color: #252525;
+  color: #aaa;
+}
+
+.modo-oscuro .description-box {
+  background-color: #292929;
+  color: #e8e8e8;
+}
+
+.modo-oscuro hr {
+  border-color: #555;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+
+  .main-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .header-buttons {
+    width: 100%;
+  }
+
+  .header-buttons .btn {
+    flex: 1;
+  }
+
+  .detail-info {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .detail-card {
+    padding: 25px;
+  }
+
+  .create-page {
+    padding: 25px;
+  }
+
+}
+
+@media (max-width: 480px) {
+
+  .header-buttons {
+    flex-direction: column;
+  }
+
+  .header-buttons .btn {
+    width: 100%;
+  }
+
+  .detail-header {
+    flex-direction: column;
+  }
+
+  .create-page {
+    padding: 20px;
+  }
+
+}/* =========================
+   MODAL DE ELIMINACIÓN
+========================= */
+
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.6);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 20px;
+
+  z-index: 9999;
+
+  backdrop-filter: blur(3px);
+}
+
+.delete-modal {
+  width: 100%;
+  max-width: 480px;
+
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 30px;
+
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+
+  animation: aparecerModal 0.2s ease;
+}
+
+.delete-modal-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.delete-task-name {
+  background: #f1f3f5;
+
+  border-radius: 10px;
+
+  padding: 12px 15px;
+
+  font-weight: 600;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@keyframes aparecerModal {
+
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+}
+
+
+/* MODO OSCURO */
+
+.modo-oscuro .delete-modal {
+  background: #1e1e1e;
+  color: #f1f1f1;
+}
+
+.modo-oscuro .delete-task-name {
+  background: #292929;
+  color: #f1f1f1;
+}

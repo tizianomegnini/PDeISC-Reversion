@@ -1,0 +1,10 @@
+# Dependencias: se reinstalan con npm install (los binarios dependen del sistema operativo)
+node_modules/
+
+# Secretos: cada uno tiene el suyo, nunca se comparte
+.env
+.env.local
+
+# Builds y logs
+dist/
+*.log

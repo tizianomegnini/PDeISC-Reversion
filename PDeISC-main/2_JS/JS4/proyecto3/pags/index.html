@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Práctica HTTP — Fetch &amp; Axios</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"></script>
+  <link rel="stylesheet" href="../styles/styles.css">
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar navbar-expand-md sticky-top border-bottom shadow-sm" id="topbar">
+  <div class="container-fluid px-3 px-md-4">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+      <i class="bi bi-arrow-left-right text-primary"></i>
+      <span>Fetch &amp; Axios</span>
+    </a>
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <span class="badge bg-primary-subtle text-primary border border-primary-subtle d-none d-sm-inline">Práctica HTTP</span>
+      <button id="theme-toggle" class="btn btn-outline-secondary btn-sm" title="Cambiar tema" onclick="toggleTheme()">
+        <i class="bi bi-sun-fill" id="theme-icon"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <div class="container-fluid px-3 px-md-4">
+    <h1 class="mb-1">Práctica HTTP</h1>
+    <p class="text-secondary mb-0">
+      Cuatro consignas con <code>fetch</code> y <code>axios</code> ·
+      API pública: <a href="https://jsonplaceholder.typicode.com" target="_blank">jsonplaceholder.typicode.com</a>
+    </p>
+  </div>
+</div>
+
+<div class="container-fluid px-3 px-md-4">
+
+  <!-- ══ CONSIGNA 3 ══ -->
+  <div class="card consigna-card border mb-4 shadow-sm">
+    <div class="consigna-header">
+      <span class="consigna-num">03</span>
+      <div>
+        <div class="consigna-title">Buscar usuarios por nombre</div>
+        <div class="consigna-sub">GET todos los usuarios, filtrar el array en el cliente</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="method-tabs">
+        <button class="mtab active-fetch" onclick="setTab('1','fetch')">Fetch</button>
+        <button class="mtab" onclick="setTab('1','axios')">Axios</button>
+      </div>
+      <div class="input-group input-group-sm mb-3">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" id="buscador" class="form-control" placeholder="Escribí un nombre para filtrar…" oninput="filtrarUsuarios()"/>
+        <span class="input-group-text"><span class="count-badge" id="count-badge">—</span></span>
+      </div>
+      <div id="c3-fetch"><button class="btn btn-fetch btn-sm" onclick="cargarBusquedaFetch()"><i class="bi bi-people me-1"></i>Cargar con Fetch</button></div>
+      <div id="c3-axios" style="display:none"><button class="btn btn-axios btn-sm" onclick="cargarBusquedaAxios()"><i class="bi bi-people me-1"></i>Cargar con Axios</button></div>
+      <div id="resultado-3" class="row g-2 mt-1"></div>
+    </div>
+  </div>
+</div><!-- /container -->
+
+<!-- ══ BACK TO TOP ══ -->
+<button id="back-to-top" class="btn btn-primary" title="Volver arriba" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="bi bi-arrow-up"></i>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="../scripts/app.js"></script>
+</body>
+</html>

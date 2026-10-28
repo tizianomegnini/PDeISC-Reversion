@@ -1,0 +1,12 @@
+{
+  "name": "punto4",
+  "version": "1.0.0",
+  "description": "Punto 4 - Servidor Express y mutación de atributos",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

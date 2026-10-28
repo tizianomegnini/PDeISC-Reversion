@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "mi-primer-proyecto",
+    "slug": "mi-primer-proyecto",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "img/tlogo.jpg",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "img/tlogo.jpg",
+        "backgroundImage": "img/tlogo.jpg",
+        "monochromeImage": "img/tlogo.jpg"
+      }
+    },
+    "web": {
+      "favicon": "img/tlogo.jpg"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+REPORTE DE DATOS - INCIZO NUMÉRICOS
+=============================================
+Registro [1]: Valor = 3242342323432 | Carga: 15:07
+Registro [2]: Valor = 2 | Carga: 15:07
+Registro [3]: Valor = 12 | Carga: 15:07
+Registro [4]: Valor = 23 | Carga: 15:07
+Registro [5]: Valor = 3 | Carga: 15:07
+Registro [6]: Valor = 2 | Carga: 15:07
+Registro [7]: Valor = 324 | Carga: 15:07
+Registro [8]: Valor = 2 | Carga: 15:07
+Registro [9]: Valor = 4 | Carga: 15:07
+Registro [10]: Valor = 2 | Carga: 15:07
+Registro [11]: Valor = 24 | Carga: 15:07
+Registro [12]: Valor = 322 | Carga: 15:07
+Registro [13]: Valor = 32 | Carga: 15:07
+Registro [14]: Valor = 423 | Carga: 15:07
+Registro [15]: Valor = 23 | Carga: 15:07
+Registro [16]: Valor = 4 | Carga: 15:07
+Registro [17]: Valor = 32 | Carga: 15:07
+Registro [18]: Valor = 234 | Carga: 15:07
+Registro [19]: Valor = 2 | Carga: 15:07
+Registro [20]: Valor = 43 | Carga: 15:07

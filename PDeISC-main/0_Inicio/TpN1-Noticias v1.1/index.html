@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/5/59/Escarapela_argentina.svg" type="image/svg+xml">
+    <title>Diario Hoy Argentina</title>
+
+    <!-- Bootstrap 5.3.3 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Librería EmailJS para enviar correos desde el frontend -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <!-- Hoja de estilos externa -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="preload">
+
+    <!-- Encabezado -->
+    <header class="custom-header text-center py-5 shadow-sm" id="inicio">
+        <div class="container">
+            <h1 class="display-4 fw-bold text-uppercase header-line">📰 Diario Hoy Argentina</h1>
+            <p class="lead opacity-75 mt-2">Las noticias más importantes del día en el país</p>
+        </div>
+    </header>
+
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg sticky-top shadow-sm py-2 custom-nav" id="main-navbar">
+        <div class="container position-relative">
+            <a class="navbar-brand fw-bold" href="#inicio">DH</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="Abrir menú">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse custom-dropdown-menu" id="menu">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="#inicio">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="#politica">Política</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="#internacional">Internacional</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="#deportes">Deportes</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="#tecnologia">Tecnología</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold text-primary" href="#contacto">Contacto</a></li>
+                </ul>
+                
+                <!-- Botón Modo Oscuro/Claro -->
+                <div class="d-flex align-items-center mt-3 mt-lg-0">
+                    <button class="btn btn-theme d-flex align-items-center gap-2" id="btnThemeToggle">
+                        <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+                        <span id="themeText">Modo Oscuro</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="container py-5">
+        
+        <!-- SECCIÓN POLÍTICA -->
+        <section class="mb-5">
+            <h2 class="section-title mb-4" id="politica">Política</h2>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://www.lanacion.com.ar/resizer/v2/discurso-del-presidente-javier-milei-en-el-FRUUUH7LF5H5ZDJXDVUTAPLYEA.jpg?auth=cec6d6b9e29ecd43a801868bc3d74870fc1fe25e58a8812ec69f2179b6ac9353&width=717&height=403&quality=70&smart=true" class="card-img-top news-img" alt="Dictadura">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge politica-badge align-self-start mb-3">Política</span>
+                            <h3 class="h5 fw-bold mb-3">Desclasificación de documentos de la dictadura</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">La SIDE inició un proceso de desclasificación de documentos históricos del período 1973-1983.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://www.lanacion.com.ar/resizer/v2/karina-milei-y-lorena-villaverde-en-mejores-ZL5ZADJNDRB6VIGLFMYJD4V27U.jpeg?auth=465ddb02ebb959a939ac3e5aae518f66bbb5acc3424b7de4b71eb914e2540559&width=880&height=586&quality=70&smart=true" class="card-img-top news-img" alt="Diputados">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge politica-badge align-self-start mb-3">Política</span>
+                            <h3 class="h5 fw-bold mb-3">Villaverde desplazada de Diputados</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">La diputada perdió la presidencia de una comisión clave tras fuertes acusaciones en su contra.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQx31bDZgiHYWhsev9HWsrUJCQ-shf_9EGSQ&s" class="card-img-top news-img" alt="Macri">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge politica-badge align-self-start mb-3">Política</span>
+                            <h3 class="h5 fw-bold mb-3">Macri reafirma apoyo al Gobierno</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">El ex presidente pidió avanzar hacia un progreso económico sostenido y mostró alineación.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN INTERNACIONAL -->
+        <section class="mb-5">
+            <h2 class="section-title mb-4" id="internacional">Internacional</h2>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://www.lanacion.com.ar/resizer/v2/dia-20-de-la-guerra-entre-estados-unidos-israel-e-CUR4U7VJR5D43PIOJ56DQ3YS7I.JPG?auth=cc4d089459c484452d3f481696e387bee6310141fe52dbccee6b1aed306a1194&width=880&height=586&quality=70&smart=true" class="card-img-top news-img" alt="Oriente Medio">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge internacional-badge align-self-start mb-3">Internacional</span>
+                            <h3 class="h5 fw-bold mb-3">Crisis en Oriente Medio</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">La situación internacional genera impacto en el precio de los vuelos y la logística global.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN DEPORTES -->
+        <section class="mb-5">
+            <h2 class="section-title mb-4" id="deportes">Deportes</h2>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://assets-us-01.kc-usercontent.com/31dbcbc6-da4c-0033-328a-d7621d0fa726/4eeccae6-7c7b-4b1e-a2c5-e2a69260a1e9/2025-04-26T133136Z_581480428_UP1EL4Q11KNM3_RTRMADP_3_SOCCER-ENGLAND-CHE-EVE-REPORT.JPG" class="card-img-top news-img" alt="Chelsea">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge deportes-badge align-self-start mb-3">Deportes</span>
+                            <h3 class="h5 fw-bold mb-3">Crisis en Chelsea</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">El club atraviesa problemas deportivos y financieros que generan gran incertidumbre en la liga.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://www.telesoldiario.com/content/bucket/8/472368w790h444c.jpg.webp" class="card-img-top news-img" alt="Independiente Rivadavia">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge deportes-badge align-self-start mb-3">Deportes</span>
+                            <h3 class="h5 fw-bold mb-3">Independiente Rivadavia ilusiona</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">El club mendocino participará por primera vez en su historia en la Copa Libertadores.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://www.ole.com.ar/images/2026/03/16/dgaJ9m1hn_1290x760__1.jpg" class="card-img-top news-img" alt="Boca">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge deportes-badge align-self-start mb-3">Deportes</span>
+                            <h3 class="h5 fw-bold mb-3">Expectativa en Boca</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">Juan Román Riquelme llegó a Paraguay para presenciar el ansiado sorteo de la Libertadores.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN TECNOLOGÍA -->
+        <section class="mb-5">
+            <h2 class="section-title mb-4" id="tecnologia">Tecnología</h2>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://www.lanacion.com.ar/resizer/v2/las-redes-5g-requieren-de-la-instalacion-de-mas-6H3BE636V5FCTEGI7WHMDTZGEQ.jpg?auth=cfa947cca5acb7dfb74808b3c4eaac4eb9da06e3662b4bdbbdc9a36df57bc835&width=880&height=586&quality=70&smart=true" class="card-img-top news-img" alt="5G">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge tecnologia-badge align-self-start mb-3">Tecnología</span>
+                            <h3 class="h5 fw-bold mb-3">Mejor red del país</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">Personal fue premiada nuevamente como la mejor red móvil y fija de toda la Argentina.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://www.lanacion.com.ar/resizer/v2/neo-es-un-robot-de-20000-dolares-disenado-para-IVRJKUUTYJBZTK7AUK3ID23S6Y.jpg?auth=812fa27b7146d4194149ce4ef57eaba32917a89aa394f7a4b6ef9bb36996a6b7&width=880&height=586&quality=70&smart=true" class="card-img-top news-img" alt="Robots">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge tecnologia-badge align-self-start mb-3">Tecnología</span>
+                            <h3 class="h5 fw-bold mb-3">Robots en casa</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">El mercado de robots domésticos de asistencia crece a pasos agigantados a nivel global.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card news-card h-100 border-0 shadow-sm">
+                        <img src="https://www.lanacion.com.ar/resizer/v2/los-cargadores-de-celulares-viejos-pueden-ser-un-LKZJLNMZCZCC7HCEI5XRNSL3NM.jpg?auth=8f2938ded2dc15b4417ecfc71ca14cdad88142e17864a4c684b091c229b86b4b&width=880&height=586&quality=70&smart=true" class="card-img-top news-img" alt="Cargadores">
+                        <div class="card-body d-flex flex-column p-4">
+                            <span class="badge tag-badge tecnologia-badge align-self-start mb-3">Tecnología</span>
+                            <h3 class="h5 fw-bold mb-3">Cuidado con cargadores</h3>
+                            <p class="card-text text-muted-custom flex-grow-1">Advierten que el consumo fantasma de dispositivos conectados puede aumentar la factura eléctrica.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN CONTACTO / NEWSLETTER -->
+        <section class="mt-5 pt-4 border-top" id="contacto">
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-8 text-center mb-4">
+                    <h2 class="fw-bold">📬 Suscríbete y Contacta</h2>
+                    <p class="text-muted-custom">Déjanos tu mensaje y recibe un correo de confirmación automático en tu bandeja de entrada.</p>
+                </div>
+                
+                <div class="col-md-8 col-lg-6">
+                    <div class="card form-card border-0 shadow-lg p-4 p-md-5">
+                        <form id="formulario" class="needs-validation" novalidate>
+                            
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="nombreInput" name="user_name" placeholder="Tu Nombre" required minlength="3">
+                                <label for="nombreInput">Tu Nombre</label>
+                                <div class="invalid-feedback">Por favor, ingresa un nombre válido (mínimo 3 letras).</div>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="emailInput" name="user_email" placeholder="correo@ejemplo.com" required pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|net|org|edu|gob|ar|com\.ar|org\.ar|edu\.ar|gob\.ar)$">
+                                <label for="emailInput">Correo Electrónico</label>
+                                <div class="invalid-feedback">Por favor, ingresa un correo válido y con extensión permitida (ej: .com, .com.ar, .net).</div>
+                            </div>
+
+                            <div class="form-floating mb-4">
+                                <textarea class="form-control" id="mensajeInput" name="message" placeholder="Tu Mensaje" style="height: 120px" required minlength="10"></textarea>
+                                <label for="mensajeInput">Mensaje</label>
+                                <div class="invalid-feedback">El mensaje no puede estar vacío (mínimo 10 caracteres).</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2" id="btnEnviar">
+                                <span>Enviar Mensaje</span>
+                                <div class="spinner-border spinner-border-sm d-none" id="formSpinner" role="status"></div>
+                            </button>
+                        </form>
+
+                        <div id="confirmacion" class="alert alert-success mt-4 d-none d-flex align-items-center gap-2" role="alert">
+                            <i class="bi bi-check-circle-fill fs-4"></i>
+                            <div>
+                                <strong>¡Mensaje enviado!</strong> 
+                            </div>
+                        </div>
+                        <div id="errorEnvio" class="alert alert-danger mt-4 d-none d-flex align-items-center gap-2" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                            <div>
+                                Hubo un problema al enviar el correo. Intenta de nuevo más tarde.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    
+    <!-- Footer -->
+    <footer class="custom-footer text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-1 fw-semibold">&copy; 2026 Diario Hoy Argentina. Todos los derechos reservados.</p>
+            <p class="mb-0 small opacity-75">Versión 2.0 - Optimizada</p>
+        </div>
+    </footer>
+
+    <button type="button" class="btn btn-primary rounded-circle shadow-lg" id="btnVolverArriba" aria-label="Volver al principio">
+        <i class="bi bi-arrow-up fs-4"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

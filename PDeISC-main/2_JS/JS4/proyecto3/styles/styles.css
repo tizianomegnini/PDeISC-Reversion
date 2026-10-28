@@ -1,0 +1,129 @@
+:root {
+      --fetch-color: #0d6efd;
+      --fetch-bg: #e7f1ff;
+      --fetch-border: #9ec5fe;
+      --axios-color: #6f42c1;
+      --axios-bg: #f0ebfa;
+      --axios-border: #c5a9e8;
+    }
+    [data-bs-theme="dark"] {
+      --fetch-bg: #0d2140;
+      --fetch-border: #1a4a8a;
+      --axios-bg: #1e0f35;
+      --axios-border: #4b2d80;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      min-height: 100vh;
+      padding-bottom: 5rem;
+    }
+    
+    .hero .container-fluid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* centra horizontal */
+  justify-content: center; /* centra vertical (si hay altura) */
+  text-align: center;   /* centra el texto */
+}
+
+    /* ── Navbar ── */
+    .navbar-brand span { font-weight: 700; letter-spacing: -0.3px; }
+
+    /* ── Theme toggle ── */
+    #theme-toggle {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+
+    /* ── Section cards ── */
+    .consigna-card { border-radius: 12px; overflow: hidden; }
+    .consigna-header {
+      padding: 1rem 1.25rem 0.9rem;
+      border-bottom: 1px solid var(--bs-border-color);
+      background: var(--bs-tertiary-bg);
+      display: flex; align-items: flex-start; gap: 0.75rem;
+    }
+    .consigna-num {
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--bs-secondary-color);
+      padding-top: 3px; min-width: 24px;
+    }
+    .consigna-title { font-size: 1rem; font-weight: 600; margin-bottom: 2px; }
+    .consigna-sub { font-size: 0.82rem; color: var(--bs-secondary-color); }
+
+    /* ── Tabs (pill style) ── */
+    .method-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .mtab {
+      padding: 4px 14px; border-radius: 20px;
+      border: 1px solid var(--bs-border-color);
+      background: transparent; font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; color: var(--bs-secondary-color);
+      transition: all 0.15s;
+    }
+    .mtab:hover { background: var(--bs-tertiary-bg); }
+    .mtab.active-fetch { background: var(--fetch-bg); color: var(--fetch-color); border-color: var(--fetch-border); }
+    .mtab.active-axios { background: var(--axios-bg); color: var(--axios-color); border-color: var(--axios-border); }
+
+    /* ── Action buttons ── */
+    .btn-fetch { background: var(--fetch-bg); color: var(--fetch-color); border: 1px solid var(--fetch-border); }
+    .btn-fetch:hover { filter: brightness(0.93); color: var(--fetch-color); }
+    .btn-axios { background: var(--axios-bg); color: var(--axios-color); border: 1px solid var(--axios-border); }
+    .btn-axios:hover { filter: brightness(0.93); color: var(--axios-color); }
+
+    /* ── User cards ── */
+    .user-card {
+      border: 1px solid var(--bs-border-color);
+      border-radius: 8px; padding: 0.7rem 0.9rem;
+      background: var(--bs-tertiary-bg);
+      height: 100%;
+    }
+    .user-card .u-name { font-weight: 600; font-size: 0.9rem; }
+    .user-card .u-email { font-size: 0.78rem; color: var(--bs-secondary-color); word-break: break-all; }
+
+    /* ── Table ── */
+    .table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Code inline ── */
+    code { font-size: 0.8rem; }
+
+    /* ── Back to top ── */
+    #back-to-top {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; z-index: 999;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      transform: translateY(10px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    #back-to-top.visible {
+      opacity: 1; pointer-events: auto; transform: translateY(0);
+    }
+
+    /* ── Loading spinner ── */
+    .loading-text { font-size: 0.85rem; color: var(--bs-secondary-color); }
+
+    /* ── Count badge ── */
+    .count-badge {
+      font-size: 0.75rem; font-weight: 600;
+      background: var(--bs-success-bg-subtle);
+      color: var(--bs-success-text-emphasis);
+      border: 1px solid var(--bs-success-border-subtle);
+      padding: 2px 10px; border-radius: 20px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--bs-tertiary-bg);
+      border-bottom: 1px solid var(--bs-border-color);
+      padding: 2rem 0 1.75rem;
+      margin-bottom: 2rem;
+    }
+    .hero h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.3px; }
+    .hero p { font-size: 0.92rem; }

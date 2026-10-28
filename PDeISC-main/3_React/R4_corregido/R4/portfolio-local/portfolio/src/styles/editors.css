@@ -1,0 +1,213 @@
+/* ---- Botón "✎ Editar" junto al título de cada sección ---- */
+
+.section-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.section-edit-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.section-edit-btn svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+/* ---- Candado flotante (bloquear / desbloquear edición) ---- */
+
+.edit-mode-btn {
+  position: fixed;
+  left: clamp(1rem, 4vw, 2rem);
+  bottom: clamp(1rem, 4vw, 2rem);
+  z-index: 40;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.edit-mode-btn:hover {
+  transform: translateY(-2px);
+}
+
+.edit-mode-btn--unlocked {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.edit-mode-btn svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* ---- Modal ---- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 15, 12, 0.5);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 100;
+  animation: modal-fade var(--t-fast) var(--ease);
+}
+
+@keyframes modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: min(640px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-size: 1.15rem;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.3rem;
+}
+
+.modal-close:hover {
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 1.4rem;
+}
+
+/* ---- Formularios de los editores (reutilizados dentro de cada modal) ---- */
+
+.editor {
+  display: grid;
+  gap: 1rem;
+}
+
+.editor__row {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  background: var(--surface);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.editor__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.editor__subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.editor__field label {
+  display: block;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  margin-bottom: 0.3rem;
+}
+
+.editor__field input,
+.editor__field textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.7rem;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.editor__field input:focus,
+.editor__field textarea:focus {
+  border-color: var(--accent);
+}
+
+.editor__actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.editor__actions .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.editor__danger {
+  border-color: #c14545 !important;
+  color: #c14545 !important;
+}
+
+.editor__add {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+}
+
+.editor__status {
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+
+
+.modal-panel--small { max-width: 520px; }
+
+/* Botón de exportar/importar, apilado arriba del candado */
+.edit-mode-btn--data {
+  bottom: calc(clamp(1rem, 4vw, 2rem) + 3.4rem);
+}

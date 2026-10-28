@@ -1,0 +1,27 @@
+/* 1. ELIMINA EL FONDO FIJO */
+body {
+    /* Bootstrap cambia automáticamente el color de fondo de esta variable según el data-bs-theme */
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 2. MEJORA LOS TEXTOS */
+.info-text {
+    font-size: 0.75rem;
+    /* Usamos una variable que sea gris en ambos modos */
+    color: var(--bs-secondary-color); 
+    margin-top: 0.25rem;
+}
+
+/* 3. CONTENEDOR DE TABLA */
+.table-container {
+    background-color: var(--bs-secondary-bg); /* Cambia según el tema */
+    border-radius: 8px;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+}
+
+.btn-action {
+    min-width: 80px;
+}

@@ -1,0 +1,40 @@
+/* Transiciones globales y reseteo */
+body, .card, h1, button {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Forzar que el espacio de trabajo aproveche el alto disponible en escritorio */
+@media (min-width: 768px) {
+    .h-100-custom {
+        min-height: calc(100vh - 90px);
+    }
+}
+
+/* Estilo para simular un lienzo o zona de trabajo limpia */
+.workspace-area {
+    border: 2px dashed var(--bs-border-color) !important;
+    background-color: var(--bs-tertiary-bg);
+}
+
+/* Efecto hover profesional en los botones de acción */
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+.btn:hover:not(:disabled) {
+    transform: translateX(4px);
+}
+
+/* Imágenes responsivas y fluidas */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: width 0.3s ease-in-out;
+}
+#contenedorImagen {
+    min-height: 300px; /* Evita que el layout salte cuando la imagen es chica */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

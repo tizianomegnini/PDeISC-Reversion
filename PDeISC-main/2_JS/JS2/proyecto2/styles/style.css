@@ -1,0 +1,224 @@
+/* ================= VARIABLES DE ENTORNO (PALETA SLATE MODERNA) ================= */
+:root[data-theme="light"] { 
+    --bg: #f8fafc; 
+    --sidebar: #ffffff; 
+    --card: #ffffff; 
+    --text: #0f172a; 
+    --text-muted: #64748b; 
+    --border: #e2e8f0; 
+    --dropzone-bg: rgba(13, 110, 253, 0.01);
+}
+:root[data-theme="dark"] { 
+    --bg: #0f172a; 
+    --sidebar: #1e293b; 
+    --card: #1e293b; 
+    --text: #f8fafc; 
+    --text-muted: #94a3b8; 
+    --border: #334155; 
+    --dropzone-bg: rgba(13, 110, 253, 0.04);
+}
+
+/* ================= REGLAS GLOBALES Y INTERFAZ BASE ================= */
+body { 
+    background-color: var(--bg); 
+    color: var(--text); 
+    transition: all 0.3s ease; 
+    min-height: 100vh; 
+    overflow-x: hidden; 
+}
+
+.text-muted { color: var(--text-muted) !important; }
+.app-layout { min-height: 100vh; display: flex; }
+
+.sidebar { 
+    background: var(--sidebar); 
+    border-right: 1px solid var(--border); 
+    width: 320px; 
+    min-width: 320px; 
+    padding: 2rem 1.5rem; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    transition: all 0.3s ease; 
+}
+
+.main-content { 
+    flex-grow: 1; 
+    padding: 2.5rem; 
+    overflow-y: auto; 
+    max-height: 100vh; 
+    background-color: var(--bg); 
+}
+
+/* ================= COMPONENTES DE LA APP ================= */
+.drop-zone { 
+    border: 2px dashed #0d6efd; 
+    border-radius: 12px; 
+    padding: 2rem 1rem; 
+    transition: 0.3s; 
+    background: var(--dropzone-bg); 
+    cursor: pointer; 
+    text-align: center; 
+}
+.drop-zone:hover { background: rgba(13, 110, 253, 0.08); }
+.drop-zone.disabled { pointer-events: none; border-style: solid; border-color: #198754; background: rgba(25, 135, 84, 0.08); }
+
+.stat-box, .data-viewer { 
+    background: var(--card); 
+    border: 1px solid var(--border); 
+    border-radius: 12px; 
+    padding: 1.2rem; 
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); 
+    transition: all 0.3s ease; 
+}
+.stat-box:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+
+.btn-theme { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.btn-theme:hover { background: var(--border); }
+
+/* ================= BOTÓN DE SUBIR (CORREGIDO PARA MÓVILES) ================= */
+#scrollToTop { 
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px; 
+    display: none; /* Se controla con JS al hacer scroll */
+    width: 48px; 
+    height: 48px; 
+    border-radius: 50%; 
+    z-index: 9999 !important; /* Forzamos que flote por encima de absolutamente TODO */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    align-items: center;
+    justify-content: center;
+}
+
+/* ================= TABLA DE HISTORIAL (MÓVIL TOTAL) ================= */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto; /* Permite scroll horizontal suave SOLO dentro de la caja de la tabla si el texto es muy largo */
+    -webkit-overflow-scrolling: touch;
+}
+
+.history-table {
+    width: 100%;
+    margin-bottom: 0;
+    vertical-align: middle;
+    color: var(--text) !important;
+    border-collapse: collapse;
+}
+
+.history-table th, .history-table td {
+    white-space: nowrap; /* Evita que los textos largos hagan saltos de línea raros en celular */
+}
+
+.history-table th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted) !important;
+    border-bottom: 2px solid var(--border) !important;
+    padding: 10px 8px !important;
+    background: transparent !important;
+    font-weight: 700;
+}
+
+.history-table td {
+    color: var(--text) !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 12px 8px !important;
+    background: transparent !important;
+    font-size: 0.82rem;
+}
+
+/* Forzar que el texto largo del reporte se achique en móviles y no empuje la tabla */
+@media (max-width: 576px) {
+    .history-table td {
+        font-size: 0.78rem; /* Un pelín más pequeña en celular */
+        padding: 10px 6px !important;
+    }
+}
+
+.badge-anim { animation: fadeIn 0.4s ease forwards; opacity: 0; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+/* ================= ZONA DE DESCARGA RESPONSIVE (NUEVO) ================= */
+.footer-report-box { 
+    background: var(--sidebar); 
+    border: 1px solid var(--border); 
+    border-radius: 12px; 
+    padding: 1.2rem; 
+    display: flex;
+    flex-direction: column; /* Por defecto se apila en celulares */
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.btn-exportar-custom {
+    width: 100%; /* Botón ancho completo en móviles */
+    white-space: nowrap;
+}
+
+/* Control responsive para pantallas medianas/grandes (Sube a formato Fila) */
+@media (min-width: 576px) {
+    .footer-report-box {
+        flex-direction: row; 
+        align-items: center;
+    }
+    .btn-exportar-custom {
+        width: auto; /* Vuelve a su tamaño normal en PC */
+    }
+}
+
+/* ================= TABLA DE HISTORIAL PREMIUM ================= */
+.history-table {
+    width: 100%;
+    margin-bottom: 0;
+    vertical-align: middle;
+    color: var(--text) !important;
+}
+.history-table th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted) !important;
+    border-bottom: 2px solid var(--border) !important;
+    padding: 10px 8px !important;
+    background: transparent !important;
+    font-weight: 700;
+}
+.history-table td {
+    color: var(--text) !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 12px 8px !important;
+    background: transparent !important;
+    font-size: 0.82rem;
+}
+.history-table tr:hover td {
+    background: rgba(13, 110, 253, 0.04) !important;
+}
+.btn-download-history {
+    background: transparent;
+    color: #0d6efd;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-block;
+    text-decoration: none;
+}
+.btn-download-history:hover {
+    background: #0d6efd;
+    color: #ffffff !important;
+    border-color: #0d6efd;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(13, 110, 253, 0.2);
+}
+
+/* ================= DISEÑO ADAPTATIVO ESTRUCTURAL ================= */
+@media (max-width: 768px) {
+    .app-layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+    .main-content { max-height: none; }
+}

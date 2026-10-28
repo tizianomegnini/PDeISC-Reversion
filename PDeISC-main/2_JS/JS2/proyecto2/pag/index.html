@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Datos Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+<body>
+
+    <div class="app-layout">
+        
+        <aside class="sidebar">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0 text-truncate">DataAnalyzer <span class="text-primary">Pro</span></h4>
+                    <button id="themeBtn" class="btn btn-sm btn-theme shadow-sm">🌓</button>
+                </div>
+                
+                <hr class="my-3" style="color: var(--border); opacity: 0.5;">
+                <p class="small text-muted text-uppercase fw-bold mb-3">Carga de Datos</p>
+
+                <div id="dropZone" class="drop-zone mb-3 shadow-sm">
+                    <input type="file" id="fileInput" accept=".txt" hidden>
+                    
+                    <div id="uploadUI">
+                        <div class="fs-1 mb-2">📄</div>
+                        <h6 class="fw-bold mb-1">Subir Archivo .txt</h6>
+                        <p class="small text-muted mb-0">Arrastra o haz clic aquí</p>
+                    </div>
+
+                    <div id="successUI" class="d-none">
+                        <div class="fs-1 mb-2">✅</div>
+                        <h6 class="fw-bold mb-0 text-success">¡Cargado con éxito!</h6>
+                    </div>
+                </div>
+
+                <div id="errorFeedback" class="alert alert-danger d-none border-0 shadow-sm bg-danger bg-opacity-10 text-danger">
+                    <div class="d-flex align-items-center">
+                        <span class="fs-5 me-2">⚠️</span>
+                        <div id="errorText" class="small fw-medium"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button id="resetBtn" class="btn btn-outline-danger w-100 py-2 d-none fw-bold small">
+                    🔄 INICIAR NUEVO ANÁLISIS
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <div id="placeholderUI" class="text-center py-5 my-5 text-muted">
+                <div class="display-3 mb-3">📊</div>
+                <h5>Esperando carga de datos...</h5>
+                <p class="small">Sube un archivo .txt en el panel izquierdo para comenzar el escaneo analítico.</p>
+            </div>
+
+            <div id="resultados" class="d-none">
+                <div class="mb-4">
+                    <h3 class="fw-bold mb-1">Tablero de Rendimiento Numérico</h3>
+                    <p class="small text-muted">Resultados en tiempo real basados en filtros de precisión.</p>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-box">
+                            <h6 class="small text-muted text-uppercase fw-bold">Números Útiles</h6>
+                            <b id="contUtil" class="h3 fw-bold">0</b>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-box">
+                            <h6 class="small text-muted text-uppercase fw-bold">Números No Útiles</h6>
+                            <b id="contNoUtil" class="h3 fw-bold">0</b>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-box" style="border-left: 4px solid #0d6efd;">
+                            <h6 class="small text-muted text-uppercase fw-bold">Efectividad</h6>
+                            <b id="percUtil" class="h3 fw-bold text-primary">0%</b>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-box" style="border-left: 4px solid #198754;">
+                            <h6 class="small text-muted text-uppercase fw-bold">Factoriales</h6>
+                            <b id="contFact" class="h3 fw-bold text-success">0</b>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-12 col-xl-6">
+                        <div class="data-viewer h-100 shadow-sm">
+                            <label class="form-label fw-bold small text-uppercase text-muted mb-3">🪞 Números Espejo Hallados (Inicio == Fin)</label>
+                            <div id="listaFiltrada" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-xl-6">
+                        <div class="data-viewer h-100 shadow-sm">
+                            <label class="form-label fw-bold small text-uppercase text-success mb-3">✨ Factoriales Perfectos Encontrados</label>
+                            <div id="listaFactoriales" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-report-box shadow-sm mb-4">
+                    <div class="text-start">
+                        <h6 class="fw-bold mb-1 small">¿Necesitas guardar estos resultados?</h6>
+                        <p class="small text-muted mb-0">Genera un documento de texto detallado en la base de datos local.</p>
+                    </div>
+                    <button id="btnExportar" class="btn btn-primary px-4 fw-bold rounded-2 btn-sm btn-exportar-custom">
+                        DESCARGAR REPORTE (.TXT)
+                    </button>
+                </div>
+
+                <div class="data-viewer shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <label class="form-label fw-bold small text-uppercase text-muted mb-0">🕒 Historial de Auditorías en Servidor (`/date`)</label>
+                        <button id="btnRefreshHistory" class="btn btn-xs btn-outline-secondary px-2 py-1 small" style="font-size:0.75rem;">🔄 Refrescar</button>
+                    </div>
+                    <div id="historialLista" class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <button id="scrollToTop" class="btn btn-primary shadow-lg">↑</button>
+
+    <script src="../scripts/app.js" type="module"></script>
+</body>
+</html>

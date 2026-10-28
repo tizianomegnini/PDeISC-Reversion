@@ -1,0 +1,10 @@
+{
+  "name": "proyecto1",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Proyecto 1 - Laboratorio de Arrays con HTTP Nativo",
+  "main": "servidor1.js",
+  "scripts": {
+    "start": "node servidor1.js"
+  }
+}

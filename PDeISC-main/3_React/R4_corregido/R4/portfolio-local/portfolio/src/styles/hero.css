@@ -1,0 +1,117 @@
+.hero {
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  padding-top: 5.5rem;
+}
+
+.hero__grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2.5rem;
+  align-items: end;
+}
+
+.hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-muted);
+  font-size: var(--fs-small);
+  margin-bottom: 1.1rem;
+}
+
+.hero__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2.4s var(--ease) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.5;
+  }
+}
+
+.hero__title {
+  font-size: var(--fs-hero);
+  max-width: 16ch;
+}
+
+/* Secuencia de entrada orquestada: cada palabra clave del título aparece
+   escalonada al cargar la página (única animación "no disparada por el usuario"
+   de todo el sitio, tal como recomienda la guía de diseño). */
+.hero__title span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.4em);
+  animation: rise 700ms var(--ease) forwards;
+}
+
+.hero__title span:nth-child(1) {
+  animation-delay: 80ms;
+}
+.hero__title span:nth-child(2) {
+  animation-delay: 200ms;
+  color: var(--accent);
+}
+.hero__title span:nth-child(3) {
+  animation-delay: 320ms;
+}
+
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero__lede {
+  margin-top: 1.4rem;
+  max-width: 46ch;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+}
+
+.hero__actions {
+  margin-top: 2.2rem;
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.hero__meta {
+  text-align: right;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  border-left: 1px solid var(--border);
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    min-height: auto;
+    padding-block: 6.5rem 3rem;
+  }
+  .hero__grid {
+    grid-template-columns: 1fr;
+  }
+  .hero__meta {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-left: 0;
+    padding-top: 1rem;
+    text-align: left;
+  }
+}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Carga Profesional</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+<body>
+
+    <div class="app-layout">
+        
+        <aside class="sidebar">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0 text-truncate">DataLoad <span class="text-primary">Pro</span></h4>
+                    <button id="themeBtn" class="btn btn-sm btn-theme shadow-sm">🌓</button>
+                </div>
+                
+                <hr class="my-3" style="color: var(--border); opacity: 0.5;">
+                <p class="small text-muted text-uppercase fw-bold mb-3">Panel de Ingreso</p>
+
+                <div class="mb-3">
+                    <label for="inputNum" class="form-label small fw-bold text-muted">Escribe un número entero</label>
+                    <div class="input-group">
+                        <input type="number" id="inputNum" class="form-control form-control-lg" placeholder="Ej: 4522" 
+                               oninput="if(this.value.length > 15) this.value = this.value.slice(0, 15);">
+                        <button id="addBtn" class="btn btn-primary px-3 fw-bold">Agregar</button>
+                    </div>
+                    <div id="liveVal" class="text-danger small fw-medium mt-2" style="min-height: 20px;"></div>
+                </div>
+
+                <div id="actionBox" class="collapse mt-4">
+                    <div class="stat-box border-primary bg-primary bg-opacity-10 p-3">
+                        <h6 class="fw-bold text-primary mb-2">¡Rango Válido Alcanzado!</h6>
+                        <p class="small text-muted mb-3">Ya cumples con el mínimo requerido de 10 números.</p>
+                        <button id="saveBtn" class="btn btn-success w-100 fw-bold py-2 shadow-sm">GENERAR REPORTE (.TXT)</button>
+                        <p id="msg" class="text-center small fw-bold mt-2 mb-0"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button id="resetBtn" class="btn btn-outline-danger w-100 py-2 fw-bold small d-none">
+                    🔄 RESETEAR LISTA
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="mb-4">
+                <h3 class="fw-bold mb-1">Visualizador de Carga Estática</h3>
+                <p class="small text-muted">Monitoreo en tiempo real de elementos procesados en memoria.</p>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12 col-sm-6 col-md-4">
+                    <div class="stat-box">
+                        <h6 class="small text-muted text-uppercase fw-bold mb-1">Elementos Registrados</h6>
+                        <b class="h2 fw-bold"><span id="contador">0</span> <span class="fs-5 text-muted fw-normal">/ max 20</span></b>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-viewer mb-4">
+                <h6 class="form-label fw-bold small text-uppercase text-muted mb-3">📌 Elementos en Memoria</h6>
+                <div id="display" class="d-flex flex-wrap gap-2">
+                    </div>
+            </div>
+
+            <div class="data-viewer shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <label class="form-label fw-bold small text-uppercase text-muted mb-0">🕒 Historial de Auditorías en Servidor (`/date`)</label>
+                    <button id="btnRefreshHistory" class="btn btn-xs btn-outline-secondary px-2 py-1 small" style="font-size:0.75rem;">🔄 Refrescar</button>
+                </div>
+                <div id="historialLista" class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                    <p class="small text-muted fst-italic mb-0 py-2">Cargando registros históricos...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button id="scrollToTop" class="btn btn-primary shadow-lg">↑</button>
+
+    <script src="../scripts/app.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+[
+  { "id": 1, "nombre": "Valentina López", "email": "valentina@uni.edu", "materia": "Programación Web", "nota": 9 },
+  { "id": 2, "nombre": "Mateo García", "email": "mateo@uni.edu", "materia": "Base de Datos", "nota": 7 },
+  { "id": 3, "nombre": "Sofía Martínez", "email": "sofia@uni.edu", "materia": "Programación Web", "nota": 8 },
+  { "id": 4, "nombre": "Nicolás Fernández", "email": "nicolas@uni.edu", "materia": "Algoritmos", "nota": 6 },
+  { "id": 5, "nombre": "Camila Rodríguez", "email": "camila@uni.edu", "materia": "Base de Datos", "nota": 10 }
+]

@@ -1,0 +1,269 @@
+/* ==========================================================
+   Variables de tema
+   ========================================================== */
+:root,
+[data-bs-theme="dark"] {
+    --bg-body: #0f1115;
+    --bg-gradient: radial-gradient(circle at 20% 0%, #1a1f2b 0%, #0f1115 60%);
+    --bg-panel: #171a21;
+    --bg-panel-2: #1d212b;
+    --border-color: #2a2f3a;
+    --text-main: #f1f3f6;
+    --text-muted: #9aa3b2;
+    --accent: #4dabf7;
+    --accent-soft: rgba(77, 171, 247, 0.15);
+    --key-bg: #232734;
+    --key-bg-hover: #2c3140;
+    --key-border: #333949;
+    --success: #51cf66;
+    --danger: #ff6b6b;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+[data-bs-theme="light"] {
+    --bg-body: #eef1f6;
+    --bg-gradient: radial-gradient(circle at 20% 0%, #ffffff 0%, #e7ebf3 60%);
+    --bg-panel: #ffffff;
+    --bg-panel-2: #f4f6fa;
+    --border-color: #dde2ea;
+    --text-main: #1b1f27;
+    --text-muted: #5b6472;
+    --accent: #1c7ed6;
+    --accent-soft: rgba(28, 126, 214, 0.12);
+    --key-bg: #eef1f6;
+    --key-bg-hover: #dfe4ec;
+    --key-border: #d0d6e0;
+    --success: #2f9e44;
+    --danger: #e03131;
+    --shadow: 0 10px 30px rgba(20, 30, 60, 0.08);
+}
+
+/* ==========================================================
+   Base / layout general
+   ========================================================== */
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--bg-gradient);
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem 2rem 2rem;
+}
+
+.app-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.25rem;
+}
+
+.app-title {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.app-main {
+    flex: 1;
+    display: flex;
+}
+
+.app-main .container-fluid,
+.app-main .row {
+    flex: 1;
+}
+
+/* ==========================================================
+   Botón de tema
+   ========================================================== */
+.btn-icon {
+    background-color: var(--bg-panel-2);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-icon:hover {
+    background-color: var(--key-bg-hover);
+    color: var(--text-main);
+    transform: scale(1.05);
+}
+
+/* ==========================================================
+   Paneles
+   ========================================================== */
+.panel {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 1.75rem;
+}
+
+.panel-game {
+    justify-content: space-between;
+    min-height: 100%;
+}
+
+.panel-ranking {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================
+   Zona del juego
+   ========================================================== */
+.palabra {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    letter-spacing: 0.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    word-break: break-all;
+}
+
+.badge-intentos {
+    background-color: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+}
+
+.mensaje {
+    font-size: 1.25rem;
+    font-weight: 600;
+    min-height: 1.6rem;
+}
+
+.nombre-container {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+/* ==========================================================
+   Teclado virtual
+   ========================================================== */
+.teclado {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+    gap: 0.5rem;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    padding: 1.25rem 0;
+}
+
+.teclado button {
+    background-color: var(--key-bg);
+    border: 1px solid var(--key-border);
+    color: var(--text-main);
+    border-radius: 10px;
+    padding: 0.6rem 0;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.teclado button:hover:not(:disabled) {
+    background-color: var(--key-bg-hover);
+    transform: translateY(-2px);
+}
+
+.teclado button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.teclado button.correcta {
+    background-color: var(--success);
+    border-color: var(--success);
+    color: #0f1115;
+}
+
+.teclado button.incorrecta {
+    background-color: var(--danger);
+    border-color: var(--danger);
+    color: #ffffff;
+}
+
+/* ==========================================================
+   Ranking
+   ========================================================== */
+.ranking-title {
+    text-align: center;
+    margin-bottom: 1.25rem;
+    font-weight: 700;
+}
+
+.ranking-list {
+    flex: 1;
+}
+
+.ranking-list .list-group-item {
+    background-color: var(--bg-panel-2);
+    border-color: var(--border-color);
+    color: var(--text-main);
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ranking-list .list-group-item:first-child {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.ranking-list .list-group-item:last-child {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* ==========================================================
+   Responsive
+   ========================================================== */
+@media (max-width: 991.98px) {
+    .app-shell {
+        padding: 1rem 1.25rem 1.5rem;
+    }
+
+    .panel {
+        padding: 1.25rem;
+    }
+
+    .panel-game {
+        min-height: auto;
+    }
+
+    .teclado {
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .app-title {
+        font-size: 1.4rem;
+    }
+
+    .palabra {
+        letter-spacing: 0.3rem;
+    }
+}

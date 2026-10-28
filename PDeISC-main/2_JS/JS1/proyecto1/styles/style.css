@@ -1,0 +1,131 @@
+/* ================= VARIABLES DE ENTORNO (PALETA SLATE FINANCIERA) ================= */
+:root[data-theme="light"] { 
+    --bg: #f8fafc;          
+    --sidebar: #ffffff; 
+    --card: #ffffff; 
+    --text: #0f172a;         
+    --text-muted: #64748b;   
+    --border: #cbd5e1;       
+    --input-bg: #ffffff;
+}
+:root[data-theme="dark"] { 
+    --bg: #0b0f19;          
+    --sidebar: #111827;     
+    --card: #1f2937;        
+    --text: #f9fafb;         
+    --text-muted: #9ca3af;   
+    --border: #374151;       
+    --input-bg: #1f2937;     
+}
+
+body { 
+    background-color: var(--bg); 
+    color: var(--text); 
+    transition: background-color 0.3s ease, color 0.3s ease; 
+    min-height: 100vh; 
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.app-layout { 
+    display: flex; 
+    min-height: 100vh; 
+}
+
+/* Panel Izquierdo COMPACTO: Fijo en pantalla, sin scroll interno en PC */
+.sidebar { 
+    background: var(--sidebar); 
+    border-right: 1px solid var(--border); 
+    width: 410px; 
+    min-width: 410px; 
+    padding: 1.25rem 1rem; 
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centra el formulario verticalmente en pantallas grandes */
+}
+
+/* Panel Derecho: Único scroll principal de la aplicación */
+.main-content { 
+    flex-grow: 1; 
+    padding: 2rem 2.5rem; 
+    overflow-y: auto; 
+    max-height: 100vh; 
+}
+
+/* Tipografías y etiquetas micro para ahorrar espacio vertical */
+h1, h2, h3, h4, h5, h6, strong { color: var(--text) !important; }
+.text-muted { color: var(--text-muted) !important; }
+
+.micro-label {
+    font-size: 0.72rem !important;
+    font-weight: 600;
+    color: var(--text-muted) !important;
+    margin-bottom: 2px;
+}
+
+/* Control Absoluto de Inputs versión Small */
+.form-control, .form-select {
+    background-color: var(--input-bg) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+}
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.2) !important;
+    border-color: #198754 !important;
+}
+.input-group-text {
+    background-color: var(--border) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+}
+
+/* Customización de alertas compactas */
+.invalid-feedback {
+    color: #f87171 !important; 
+    font-size: 0.7rem !important;
+    font-weight: 500;
+}
+
+/* Tarjetas de Clientes */
+.account-card {
+    background: var(--sidebar);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
+}
+.account-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+.btn-theme { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
+
+/* BOTÓN SCROLL TO TOP */
+.scroll-top-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: none !important;
+}
+.scroll-top-btn.show { opacity: 1; visibility: visible; }
+
+/* RESPONSIVE FLUIDO */
+@media (max-width: 992px) {
+    .app-layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 100%; height: auto; position: relative; max-height: none; padding: 1.5rem; }
+    .main-content { max-height: none; padding: 1.5rem; }
+}

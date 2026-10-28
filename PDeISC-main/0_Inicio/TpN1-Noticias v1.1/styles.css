@@ -1,0 +1,162 @@
+/* --- CONFIGURACIONES GLOBALES --- */
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; 
+}
+
+body.preload {
+    transition: none !important;
+}
+
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Variables globales de color */
+[data-bs-theme="light"] body { background-color: #f8fafc; }
+[data-bs-theme="dark"] body { background-color: #0b0f19; }
+
+/* --- ENCABEZADO --- */
+.custom-header {
+    background: linear-gradient(135deg, #020617, #0f172a);
+    color: #ffffff;
+}
+.header-line::after {
+    content: "";
+    width: 60px;
+    height: 4px;
+    background: #0d6efd;
+    display: block;
+    margin: 12px auto 0;
+    border-radius: 10px;
+}
+
+/* --- NAVBAR Y MENÚ SUPERPUESTO --- */
+.custom-nav { transition: background-color 0.3s ease; }
+
+[data-bs-theme="light"] .custom-nav { background-color: #ffffff !important; }
+[data-bs-theme="light"] .custom-nav .nav-link { color: #334155 !important; }
+[data-bs-theme="light"] .custom-nav .nav-link:hover { color: #0d6efd !important; }
+[data-bs-theme="light"] .navbar-brand { color: #020617 !important; }
+
+[data-bs-theme="dark"] .custom-nav { 
+    background-color: #161f30 !important; 
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+[data-bs-theme="dark"] .custom-nav .nav-link { color: #94a3b8 !important; }
+[data-bs-theme="dark"] .custom-nav .nav-link:hover { color: #60a5fa !important; }
+[data-bs-theme="dark"] .navbar-brand { color: #ffffff !important; }
+
+@media (max-width: 991.98px) {
+    .custom-dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 1.5rem;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+    }
+    [data-bs-theme="light"] .custom-dropdown-menu { background-color: #ffffff; }
+    [data-bs-theme="dark"] .custom-dropdown-menu { 
+        background-color: #161f30;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-top: none;
+    }
+}
+
+/* --- TARJETAS --- */
+.section-title {
+    font-weight: 800;
+    border-left: 5px solid #0d6efd;
+    padding-left: 12px;
+}
+
+.news-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: var(--bs-body-bg);
+}
+[data-bs-theme="dark"] .news-card { background-color: #1e293b; }
+
+.news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+}
+
+.news-img {
+    height: 220px;
+    object-fit: cover;
+}
+
+.text-muted-custom { color: #64748b; }
+[data-bs-theme="dark"] .text-muted-custom { color: #94a3b8; }
+
+.tag-badge { padding: 6px 12px; font-weight: 600; border-radius: 6px; }
+.politica-badge { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+.internacional-badge { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; }
+.deportes-badge { background-color: rgba(25, 135, 84, 0.1); color: #198754; }
+.tecnologia-badge { background-color: rgba(13, 202, 240, 0.1); color: #087990; }
+
+[data-bs-theme="dark"] .politica-badge { background-color: rgba(96, 165, 250, 0.15); color: #60a5fa; }
+[data-bs-theme="dark"] .internacional-badge { background-color: rgba(156, 163, 175, 0.15); color: #9ca3af; }
+[data-bs-theme="dark"] .deportes-badge { background-color: rgba(52, 211, 153, 0.15); color: #34d399; }
+[data-bs-theme="dark"] .tecnologia-badge { background-color: rgba(34, 211, 238, 0.15); color: #22d3ee; }
+
+.form-card {
+    border-radius: 16px;
+    background-color: var(--bs-body-bg);
+}
+[data-bs-theme="dark"] .form-card { background-color: #1e293b; }
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    border-color: #0d6efd;
+}
+
+.btn-theme {
+    border: 1px solid #0d6efd;
+    color: #0d6efd;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.btn-theme:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.custom-footer {
+    background-color: #0f172a;
+    color: #94a3b8;
+}
+[data-bs-theme="dark"] .custom-footer { background-color: #090d16; }
+
+/* --- BOTÓN VOLVER ARRIBA --- */
+#btnVolverArriba {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+/* Esta clase se agrega por JS al scrollear */
+#btnVolverArriba.mostrar {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+#btnVolverArriba:hover {
+    transform: translateY(-5px);
+}
