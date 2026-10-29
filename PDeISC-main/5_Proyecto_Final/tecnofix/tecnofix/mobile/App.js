@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Keyboard, Pressable, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView as InsetsSafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { authApi, restoreToken, saveToken } from './src/api';
@@ -59,6 +59,16 @@ function AppContent() {
   const [loading, setLoading] = useState(true);
   const [restoreError, setRestoreError] = useState('');
   const [themeMode, setThemeModeState] = useState(getThemeMode());
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -192,7 +202,7 @@ function AppContent() {
                     ? <ProfileScreen user={user} onBack={() => setScreen('home')} onUserUpdated={onUserUpdated} mustChangePassword themeMode={themeMode} onThemeChange={changeTheme} />
                     : <ProfileScreen user={user} onBack={() => setScreen('home')} onUserUpdated={onUserUpdated} themeMode={themeMode} onThemeChange={changeTheme} />}
         </View>
-        {!user.debe_cambiar_password && (
+        {!user.debe_cambiar_password && !keyboardVisible && (
           <TabBar user={user} screen={screen} onNavigate={(next) => setScreen(next)} bottomInset={insets.bottom} />
         )}
       </View>

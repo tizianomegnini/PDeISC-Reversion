@@ -171,6 +171,8 @@ function Rating({ consulta, onRated }) {
 export default function DetailScreen({ id, user, onBack, onDone }) {
   const detailScrollRef = React.useRef(null);
   const chatInputFocused = React.useRef(false);
+  const keyboardScrollTimer = React.useRef(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [consulta, setConsulta] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -188,13 +190,35 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
   }, [id]);
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    const subscription = Keyboard.addListener('keyboardDidShow', () => {
+    const subscription = Keyboard.addListener('keyboardDidShow', (event) => {
+      setKeyboardVisible(true);
       if (chatInputFocused.current) {
-        detailScrollRef.current?.scrollToEnd({ animated: true });
+        Keyboard.scheduleLayoutAnimation(event);
+        clearTimeout(keyboardScrollTimer.current);
+        keyboardScrollTimer.current = setTimeout(() => {
+          detailScrollRef.current?.scrollToEnd({ animated: true });
+          keyboardScrollTimer.current = setTimeout(() => {
+            detailScrollRef.current?.scrollToEnd({ animated: true });
+          }, 120);
+        }, Platform.OS === 'android' ? 320 : 100);
       }
     });
-    return () => subscription.remove();
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+    return () => {
+      subscription.remove();
+      hideSubscription.remove();
+      clearTimeout(keyboardScrollTimer.current);
+    };
   }, []);
+  const revealChatComposer = () => {
+    chatInputFocused.current = true;
+    clearTimeout(keyboardScrollTimer.current);
+    keyboardScrollTimer.current = setTimeout(() => {
+      detailScrollRef.current?.scrollToEnd({ animated: true });
+    }, Platform.OS === 'android' ? 320 : 100);
+  };
 
   const changeStatus = (next) => {
     const execute = async () => {
@@ -221,8 +245,17 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
   const closed = ['finalizada', 'cancelada'].includes(consulta.estado);
   const equipment = [consulta.tipo_equipo, consulta.marca, consulta.modelo].filter(Boolean).join(' · ');
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-    <MotionScrollView ref={detailScrollRef} style={{ flex: 1 }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+    <MotionScrollView
+      ref={detailScrollRef}
+      style={{ flex: 1 }}
+      contentContainerStyle={[styles.content, keyboardVisible && { paddingBottom: 180 }]}
+      keyboardShouldPersistTaps="handled"
+    >
       <Button title="← Volver" onPress={onBack} variant="secondary" />
       <Heading title={`Consulta #${consulta.id}`} subtitle={`${statusLabel(consulta.estado)} · ${formatDate(consulta.created_at)}`} />
       {!!error && <Message>{error}</Message>}
@@ -250,7 +283,7 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
         cerrada={closed}
         canSend={user.rol !== 'admin'}
         reload={load}
-        onComposerFocus={() => { chatInputFocused.current = true; }}
+        onComposerFocus={revealChatComposer}
         onComposerBlur={() => { chatInputFocused.current = false; }}
       />
       {user.rol === 'admin' && <Button title="Volver al panel" variant="secondary" onPress={onDone} />}

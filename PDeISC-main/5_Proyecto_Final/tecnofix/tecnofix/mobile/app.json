@@ -2,7 +2,7 @@
   "expo": {
     "name": "TecnoFix Soporte",
     "slug": "tecnofix-mobile",
-    "version": "1.0.5",
+    "version": "1.0.7",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "scheme": "tecnofix",
@@ -15,7 +15,7 @@
     },
     "android": {
       "package": "com.tecnofix.app",
-      "versionCode": 6,
+      "versionCode": 8,
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {

@@ -2,7 +2,7 @@
 
 Esta es la app React Native. Se conecta al mismo backend que el sitio web; no contiene credenciales de base de datos.
 
-La app se muestra como **TecnoFix Soporte** en el dispositivo y usa el icono y la identidad visual de `assets/`. Incluye tema claro/oscuro persistente, áreas seguras para las barras del sistema, transiciones suaves al desplazarse por las pantallas, una conversación con burbujas inspiradas en WhatsApp y ajuste del scroll al abrir el teclado.
+La app se muestra como **TecnoFix Soporte** en el dispositivo y usa el icono y la identidad visual de `assets/`. Incluye tema claro/oscuro persistente, áreas seguras para las barras del sistema, transiciones suaves al desplazarse por las pantallas, una conversación con burbujas inspiradas en WhatsApp y ajuste del scroll al abrir el teclado. En Android, el teclado redimensiona la ventana, oculta la navegación inferior mientras está abierto y deja espacio extra debajo del chat para mantener visible el campo de escritura.
 
 ## Probar con Expo Go
 
