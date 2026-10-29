@@ -2,7 +2,7 @@
   "expo": {
     "name": "TecnoFix Soporte",
     "slug": "tecnofix-mobile",
-    "version": "1.0.2",
+    "version": "1.0.5",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "scheme": "tecnofix",
@@ -15,8 +15,9 @@
     },
     "android": {
       "package": "com.tecnofix.app",
-      "versionCode": 3,
+      "versionCode": 6,
       "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#102A43"

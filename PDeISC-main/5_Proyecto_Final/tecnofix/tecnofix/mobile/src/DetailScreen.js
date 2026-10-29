@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { consultasApi } from './api';
-import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, statusLabel, styles } from './ui';
+import { Button, Card, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, statusLabel, styles } from './ui';
 
 const TECH_ACTIONS = {
   asignada: [['en_proceso', 'Comenzar atención']],
@@ -9,12 +9,21 @@ const TECH_ACTIONS = {
   esperando_cliente: [['en_proceso', 'Retomar atención'], ['finalizada', 'Finalizar']],
 };
 
-function Chat({ consultaId, cerrada, canSend, reload }) {
+function messageTime(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? '—'
+    : date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function Chat({ consultaId, currentUserId, cerrada, canSend, reload, onComposerFocus, onComposerBlur }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const messagesRef = React.useRef(null);
+  const nearBottomRef = React.useRef(true);
   const load = useCallback(async () => {
     try {
       const result = await consultasApi.mensajes(consultaId);
@@ -32,13 +41,16 @@ function Chat({ consultaId, cerrada, canSend, reload }) {
     return () => clearInterval(timer);
   }, [load]);
   const send = async () => {
-    if (!text.trim()) return;
+    const content = text.trim();
+    if (!content || busy) return;
     setBusy(true);
     setError('');
     try {
-      await consultasApi.enviarMensaje(consultaId, text);
+      await consultasApi.enviarMensaje(consultaId, content);
       setText('');
       await load();
+      nearBottomRef.current = true;
+      requestAnimationFrame(() => messagesRef.current?.scrollToEnd({ animated: true }));
       reload();
     } catch (e) {
       setError(e.message);
@@ -47,23 +59,81 @@ function Chat({ consultaId, cerrada, canSend, reload }) {
     }
   };
   return (
-    <Card>
-      <Heading title="Conversación" subtitle="Los mensajes se actualizan automáticamente." />
-      {loading ? <Loading label="Cargando mensajes…" /> : messages.length
-        ? messages.map((message) => (
-          <View key={message.id} style={{ backgroundColor: colors.conversationSurface, borderRadius: 10, padding: 12, gap: 5 }}>
-            <Text style={styles.itemMeta}>{fullName({ nombre: message.autor_nombre, apellido: message.autor_apellido })} · {formatDate(message.created_at)}</Text>
-            <Text style={{ color: colors.text, lineHeight: 20 }}>{message.contenido}</Text>
-          </View>
-        ))
-        : <Empty>La conversación empieza acá.</Empty>}
+    <Card style={styles.chatCard}>
+      <View style={styles.chatHeader}>
+        <Heading title="Conversación" subtitle="Mensajes privados · se actualizan automáticamente." />
+      </View>
+      <ScrollView
+        ref={messagesRef}
+        nestedScrollEnabled
+        style={[styles.chatMessages, { backgroundColor: colors.conversationSurface }]}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: messages.length ? 'flex-end' : 'center', gap: 8 }}
+        keyboardShouldPersistTaps="handled"
+        onScroll={(event) => {
+          const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+          nearBottomRef.current = contentSize.height - layoutMeasurement.height - contentOffset.y < 60;
+        }}
+        scrollEventThrottle={100}
+        onContentSizeChange={() => {
+          if (nearBottomRef.current) messagesRef.current?.scrollToEnd({ animated: true });
+        }}
+      >
+        {loading
+          ? <Loading label="Cargando mensajes…" />
+          : messages.length
+            ? messages.map((message) => {
+              const ownMessage = Number(message.autor_id) === Number(currentUserId);
+              return (
+                <View key={message.id} style={[styles.messageRow, ownMessage ? styles.messageRowOwn : styles.messageRowOther]}>
+                  <View style={[styles.messageBubble, ownMessage ? styles.messageBubbleOwn : styles.messageBubbleOther]}>
+                    {!ownMessage && (
+                      <Text style={styles.messageAuthor}>
+                        {fullName({ nombre: message.autor_nombre, apellido: message.autor_apellido })}
+                      </Text>
+                    )}
+                    <Text style={[styles.messageText, ownMessage && styles.messageTextOwn]}>{message.contenido}</Text>
+                    <Text style={styles.messageTime}>{messageTime(message.created_at)}</Text>
+                  </View>
+                </View>
+              );
+            })
+            : <View style={styles.chatEmpty}>
+              <Text style={styles.chatEmptyTitle}>Todavía no hay mensajes</Text>
+              <Text style={styles.chatEmptySubtitle}>Escribí acá para conversar con el equipo de soporte.</Text>
+            </View>}
+      </ScrollView>
       {!!error && <Message>{error}</Message>}
       {cerrada
-        ? <Text style={styles.muted}>La consulta terminó y la conversación está cerrada.</Text>
+        ? <Text style={styles.chatClosed}>Esta consulta finalizó y la conversación está cerrada.</Text>
         : canSend ? <>
-          <Field label="Escribí un mensaje" value={text} onChangeText={setText} multiline maxLength={2000} />
-          <Button title={busy ? 'Enviando…' : 'Enviar mensaje'} onPress={send} disabled={busy || !text.trim()} />
-        </> : <Text style={styles.muted}>La cuenta de administración puede consultar los mensajes, pero no responder.</Text>}
+          <View style={styles.composer}>
+            <TextInput
+              accessibilityLabel="Escribí un mensaje"
+              value={text}
+              onChangeText={setText}
+              placeholder="Escribí un mensaje"
+              placeholderTextColor={colors.placeholder}
+              multiline
+              maxLength={2000}
+              editable={!busy}
+              returnKeyType="default"
+              onFocus={onComposerFocus}
+              onBlur={onComposerBlur}
+              style={styles.composerInput}
+            />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Enviar mensaje"
+              onPress={send}
+              disabled={busy || !text.trim()}
+              style={[styles.sendButton, (busy || !text.trim()) && styles.sendButtonDisabled]}
+            >
+              {busy
+                ? <ActivityIndicator size="small" color={colors.textOnPrimary} />
+                : <Text style={styles.sendButtonText}>➤</Text>}
+            </Pressable>
+          </View>
+        </> : <Text style={styles.chatClosed}>La cuenta de administración puede leer la conversación, pero no enviar mensajes.</Text>}
     </Card>
   );
 }
@@ -99,6 +169,8 @@ function Rating({ consulta, onRated }) {
 }
 
 export default function DetailScreen({ id, user, onBack, onDone }) {
+  const detailScrollRef = React.useRef(null);
+  const chatInputFocused = React.useRef(false);
   const [consulta, setConsulta] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -115,6 +187,14 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
     }
   }, [id]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const subscription = Keyboard.addListener('keyboardDidShow', () => {
+      if (chatInputFocused.current) {
+        detailScrollRef.current?.scrollToEnd({ animated: true });
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   const changeStatus = (next) => {
     const execute = async () => {
@@ -141,7 +221,8 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
   const closed = ['finalizada', 'cancelada'].includes(consulta.estado);
   const equipment = [consulta.tipo_equipo, consulta.marca, consulta.modelo].filter(Boolean).join(' · ');
   return (
-    <MotionScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <MotionScrollView ref={detailScrollRef} style={{ flex: 1 }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Button title="← Volver" onPress={onBack} variant="secondary" />
       <Heading title={`Consulta #${consulta.id}`} subtitle={`${statusLabel(consulta.estado)} · ${formatDate(consulta.created_at)}`} />
       {!!error && <Message>{error}</Message>}
@@ -163,8 +244,17 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
       {consulta.estado === 'finalizada' && user.rol !== 'cliente' && consulta.valoracion_estrellas
         ? <Card><Text style={styles.itemTitle}>Valoración</Text><Text style={{ color: colors.amber, fontSize: 24 }}>{'★'.repeat(consulta.valoracion_estrellas)}{'☆'.repeat(5 - consulta.valoracion_estrellas)}</Text>{consulta.valoracion_comentario ? <Text style={styles.muted}>{consulta.valoracion_comentario}</Text> : null}</Card>
         : null}
-      <Chat consultaId={consulta.id} cerrada={closed} canSend={user.rol !== 'admin'} reload={load} />
+      <Chat
+        consultaId={consulta.id}
+        currentUserId={user.id}
+        cerrada={closed}
+        canSend={user.rol !== 'admin'}
+        reload={load}
+        onComposerFocus={() => { chatInputFocused.current = true; }}
+        onComposerBlur={() => { chatInputFocused.current = false; }}
+      />
       {user.rol === 'admin' && <Button title="Volver al panel" variant="secondary" onPress={onDone} />}
     </MotionScrollView>
+    </KeyboardAvoidingView>
   );
 }

@@ -29,6 +29,10 @@ const palettes = {
     textOnPrimary: '#ffffff',
     shadow: '#102a43',
     conversationSurface: '#f0f6fb',
+    incomingMessage: '#ffffff',
+    outgoingMessage: '#d8f6e8',
+    outgoingText: '#183b32',
+    composerSurface: '#f5f8fa',
     rating: '#e5a000',
     ratingEmpty: '#a9b5bd',
   },
@@ -58,6 +62,10 @@ const palettes = {
     textOnPrimary: '#092630',
     shadow: '#000000',
     conversationSurface: '#1a3040',
+    incomingMessage: '#1d303e',
+    outgoingMessage: '#075e54',
+    outgoingText: '#e8f5f1',
+    composerSurface: '#172936',
     rating: '#ffc247',
     ratingEmpty: '#5b6d79',
   },
@@ -94,7 +102,10 @@ export const styles = new Proxy({}, {
   },
 });
 
-export function MotionScrollView({ children, onScroll, scrollEventThrottle = 16, ...props }) {
+export const MotionScrollView = React.forwardRef(function MotionScrollView(
+  { children, onScroll, scrollEventThrottle = 16, ...props },
+  ref,
+) {
   const scrollY = React.useRef(new Animated.Value(0)).current;
   const content = React.Children.toArray(children);
   const headerStyle = {
@@ -115,6 +126,7 @@ export function MotionScrollView({ children, onScroll, scrollEventThrottle = 16,
   return (
     <Animated.ScrollView
       {...props}
+      ref={ref}
       scrollEventThrottle={scrollEventThrottle}
       onScroll={Animated.event(
         [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -125,7 +137,7 @@ export function MotionScrollView({ children, onScroll, scrollEventThrottle = 16,
       {content.slice(1)}
     </Animated.ScrollView>
   );
-}
+});
 
 export function BrandMark({ size = 44 }) {
   return <Image source={require('../assets/tecnofix-mark.png')} style={{ width: size, height: size }} resizeMode="contain" />;
@@ -294,6 +306,28 @@ function createStyles() {
   themeButtonText: { color: colors.primaryDark, fontSize: 19, fontWeight: '800' },
   themeOptions: { flexDirection: 'row', gap: 10 },
   themeOption: { flex: 1 },
+  chatCard: { padding: 12, gap: 12 },
+  chatHeader: { paddingHorizontal: 4, paddingBottom: 2 },
+  chatMessages: { maxHeight: 380, minHeight: 150, borderRadius: 16, padding: 10, gap: 8 },
+  chatEmpty: { flex: 1, minHeight: 130, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+  chatEmptyTitle: { color: colors.text, fontSize: 15, fontWeight: '700', textAlign: 'center' },
+  chatEmptySubtitle: { color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: 'center', marginTop: 4 },
+  messageRow: { width: '100%', flexDirection: 'row' },
+  messageRowOwn: { justifyContent: 'flex-end' },
+  messageRowOther: { justifyContent: 'flex-start' },
+  messageBubble: { maxWidth: '88%', borderRadius: 16, paddingHorizontal: 12, paddingTop: 8, paddingBottom: 7, gap: 3 },
+  messageBubbleOwn: { backgroundColor: colors.outgoingMessage, borderTopRightRadius: 5 },
+  messageBubbleOther: { backgroundColor: colors.incomingMessage, borderTopLeftRadius: 5 },
+  messageAuthor: { color: colors.primaryDark, fontSize: 11, fontWeight: '800' },
+  messageText: { color: colors.text, fontSize: 15, lineHeight: 21 },
+  messageTextOwn: { color: colors.outgoingText },
+  messageTime: { color: colors.muted, fontSize: 10, textAlign: 'right', marginTop: 1 },
+  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, padding: 6, backgroundColor: colors.composerSurface, borderRadius: 25 },
+  composerInput: { flex: 1, maxHeight: 120, minHeight: 42, borderRadius: 21, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 9, color: colors.text, fontSize: 15, lineHeight: 21 },
+  sendButton: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary },
+  sendButtonDisabled: { opacity: 0.45 },
+  sendButtonText: { color: colors.textOnPrimary, fontSize: 20, fontWeight: '800', marginLeft: 2 },
+  chatClosed: { textAlign: 'center', color: colors.muted, fontSize: 13, lineHeight: 18, paddingHorizontal: 8 },
   };
 }
 
