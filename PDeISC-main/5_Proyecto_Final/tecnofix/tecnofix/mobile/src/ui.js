@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Animated, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Animated, Image, Keyboard, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
 const palettes = {
@@ -102,11 +102,61 @@ export const styles = new Proxy({}, {
   },
 });
 
+const KeyboardScrollContext = React.createContext(null);
+
 export const MotionScrollView = React.forwardRef(function MotionScrollView(
-  { children, onScroll, scrollEventThrottle = 16, ...props },
+  { children, contentContainerStyle, onScroll, scrollEventThrottle = 16, ...props },
   ref,
 ) {
   const scrollY = React.useRef(new Animated.Value(0)).current;
+  const scrollViewRef = React.useRef(null);
+  const focusedInputRef = React.useRef(false);
+  const keyboardScrollTimer = React.useRef(null);
+  const [keyboardVisible, setKeyboardVisible] = React.useState(false);
+  const setScrollViewRef = React.useCallback((instance) => {
+    scrollViewRef.current = instance;
+    if (typeof ref === 'function') ref(instance);
+    else if (ref) ref.current = instance;
+  }, [ref]);
+  const scrollToEndAfterKeyboard = React.useCallback((repeatAfterLayout = false) => {
+    clearTimeout(keyboardScrollTimer.current);
+    keyboardScrollTimer.current = setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+      if (repeatAfterLayout) {
+        keyboardScrollTimer.current = setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 120);
+      }
+    }, Platform.OS === 'android' ? 320 : 100);
+  }, []);
+  const onInputFocus = React.useCallback(() => {
+    focusedInputRef.current = true;
+    scrollToEndAfterKeyboard();
+  }, [scrollToEndAfterKeyboard]);
+  const onInputBlur = React.useCallback(() => {
+    focusedInputRef.current = false;
+    clearTimeout(keyboardScrollTimer.current);
+  }, []);
+  React.useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', (event) => {
+      setKeyboardVisible(true);
+      if (!focusedInputRef.current) return;
+      Keyboard.scheduleLayoutAnimation(event);
+      scrollToEndAfterKeyboard(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+      clearTimeout(keyboardScrollTimer.current);
+    };
+  }, [scrollToEndAfterKeyboard]);
+  const keyboardScroll = React.useMemo(
+    () => ({ onInputFocus, onInputBlur }),
+    [onInputBlur, onInputFocus],
+  );
   const content = React.Children.toArray(children);
   const headerStyle = {
     opacity: scrollY.interpolate({
@@ -124,20 +174,27 @@ export const MotionScrollView = React.forwardRef(function MotionScrollView(
   };
 
   return (
-    <Animated.ScrollView
-      {...props}
-      ref={ref}
-      scrollEventThrottle={scrollEventThrottle}
-      onScroll={Animated.event(
-        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-        { useNativeDriver: true, listener: onScroll },
-      )}
-    >
-      {content[0] && <Animated.View style={headerStyle}>{content[0]}</Animated.View>}
-      {content.slice(1)}
-    </Animated.ScrollView>
+    <KeyboardScrollContext.Provider value={keyboardScroll}>
+      <Animated.ScrollView
+        {...props}
+        ref={setScrollViewRef}
+        contentContainerStyle={[contentContainerStyle, keyboardVisible && { paddingBottom: 180 }]}
+        scrollEventThrottle={scrollEventThrottle}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true, listener: onScroll },
+        )}
+      >
+        {content[0] && <Animated.View style={headerStyle}>{content[0]}</Animated.View>}
+        {content.slice(1)}
+      </Animated.ScrollView>
+    </KeyboardScrollContext.Provider>
   );
 });
+
+export function useKeyboardScroll() {
+  return React.useContext(KeyboardScrollContext);
+}
 
 export function BrandMark({ size = 44 }) {
   return <Image source={require('../assets/tecnofix-mark.png')} style={{ width: size, height: size }} resizeMode="contain" />;
@@ -163,7 +220,8 @@ export function Button({ title, onPress, variant = 'primary', disabled = false, 
   );
 }
 
-export function Field({ label, value, onChangeText, placeholder, secureTextEntry, keyboardType, multiline, maxLength }) {
+export function Field({ label, value, onChangeText, placeholder, secureTextEntry, keyboardType, multiline, maxLength, onFocus, onBlur }) {
+  const revealFocusedInput = React.useContext(KeyboardScrollContext);
   return (
     <View style={styles.field}>
       {!!label && <Text style={styles.label}>{label}</Text>}
@@ -179,6 +237,14 @@ export function Field({ label, value, onChangeText, placeholder, secureTextEntry
         maxLength={maxLength}
         autoCapitalize={keyboardType === 'email-address' || secureTextEntry ? 'none' : 'sentences'}
         autoCorrect={keyboardType === 'email-address' || secureTextEntry ? false : undefined}
+        onFocus={(event) => {
+          revealFocusedInput?.onInputFocus();
+          onFocus?.(event);
+        }}
+        onBlur={(event) => {
+          revealFocusedInput?.onInputBlur();
+          onBlur?.(event);
+        }}
         style={[styles.input, multiline && styles.multiline]}
       />
     </View>
@@ -281,6 +347,46 @@ function createStyles() {
   status: { color: colors.primaryDark, fontWeight: '700', fontSize: 13 },
   statNumber: { color: colors.primaryDark, fontSize: 25, fontWeight: '800' },
   separator: { height: 1, backgroundColor: colors.border, marginVertical: 4 },
+  adminPageHeading: { gap: 2 },
+  adminPageEyebrow: { color: colors.primaryDark, fontSize: 11, fontWeight: '800', letterSpacing: 1.4 },
+  adminTabList: { gap: 8, paddingVertical: 2 },
+  adminTab: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 13, borderRadius: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  adminTabActive: { backgroundColor: colors.tabActive, borderColor: colors.primary },
+  adminTabIcon: { color: colors.muted, fontSize: 14, fontWeight: '800' },
+  adminTabText: { color: colors.muted, fontSize: 12, fontWeight: '700' },
+  adminTabTextActive: { color: colors.primaryDark },
+  adminHero: { backgroundColor: colors.primaryDark, borderRadius: 24, padding: 20, gap: 18 },
+  adminHeroEyebrow: { color: colors.textOnPrimary, opacity: 0.78, fontSize: 10, fontWeight: '800', letterSpacing: 1.5 },
+  adminHeroTitle: { color: colors.textOnPrimary, fontSize: 27, fontWeight: '900', letterSpacing: -0.6 },
+  adminHeroSubtitle: { color: colors.textOnPrimary, opacity: 0.84, fontSize: 13, lineHeight: 18 },
+  adminHeroBadge: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.16)' },
+  adminHeroBadgeText: { color: colors.textOnPrimary, fontSize: 25, fontWeight: '800' },
+  adminHeroDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.22)' },
+  adminHeroMetrics: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  adminHeroMetric: { flex: 1, gap: 3 },
+  adminHeroMetricValue: { color: colors.textOnPrimary, fontSize: 23, fontWeight: '900' },
+  adminHeroMetricLabel: { color: colors.textOnPrimary, opacity: 0.8, fontSize: 9, fontWeight: '800', letterSpacing: 0.6 },
+  adminHeroMetricDivider: { width: 1, height: 34, backgroundColor: 'rgba(255,255,255,0.22)', marginHorizontal: 10 },
+  adminSectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800' },
+  adminRefresh: { color: colors.primaryDark, fontSize: 13, fontWeight: '800', padding: 4 },
+  adminStatsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  adminStatCard: { flexBasis: '47%', flexGrow: 1, minWidth: 132, padding: 14, gap: 7 },
+  adminStatIcon: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: colors.secondarySurface },
+  adminStatIconText: { fontSize: 17, fontWeight: '900' },
+  adminStatAccent: { width: 7, height: 7, borderRadius: 4 },
+  adminStatValue: { color: colors.text, fontSize: 25, fontWeight: '900', letterSpacing: -0.5 },
+  adminProgressCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 20, padding: 16, gap: 14 },
+  adminProgressPercent: { color: colors.primaryDark, fontSize: 20, fontWeight: '900' },
+  adminProgressTrack: { height: 9, overflow: 'hidden', borderRadius: 5, backgroundColor: colors.secondarySurface },
+  adminProgressFill: { height: '100%', borderRadius: 5, backgroundColor: colors.accent },
+  adminSectionHeading: { gap: 3, marginTop: 2 },
+  adminActionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  adminAction: { flexBasis: '47%', flexGrow: 1, minWidth: 132, minHeight: 128, justifyContent: 'space-between', padding: 14, borderRadius: 18, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  adminActionIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: colors.tabActive },
+  adminActionIconText: { color: colors.primaryDark, fontSize: 18, fontWeight: '900' },
+  adminActionArrow: { color: colors.primaryDark, fontSize: 25, fontWeight: '500' },
+  adminActionTitle: { color: colors.text, fontSize: 15, fontWeight: '800', marginTop: 10 },
+  adminActionSubtitle: { color: colors.muted, fontSize: 12, lineHeight: 17 },
   authContainer: { flexGrow: 1, paddingHorizontal: 20, justifyContent: 'center', paddingVertical: 28, gap: 22 },
   authBrand: { alignItems: 'center', gap: 8 },
   authBrandName: { color: colors.text, fontSize: 29, fontWeight: '900', letterSpacing: -0.8 },

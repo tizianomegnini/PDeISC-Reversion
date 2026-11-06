@@ -1,40 +1,129 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { adminApi, consultasApi } from './api';
-import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, formatDate, fullName, statusLabel, styles } from './ui';
+import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, statusLabel, styles } from './ui';
 
 const TABS = [
-  ['resumen', 'Resumen'],
-  ['pendientes', 'Pendientes'],
-  ['tecnicos', 'Técnicos'],
-  ['locales', 'Locales'],
-  ['estadisticas', 'Estadísticas'],
-  ['valoraciones', 'Valoraciones'],
-  ['config', 'Configuración'],
+  ['resumen', 'Resumen', '▦'],
+  ['pendientes', 'Pendientes', '◷'],
+  ['tecnicos', 'Técnicos', '♙'],
+  ['locales', 'Locales', '⌖'],
+  ['estadisticas', 'Estadísticas', '▤'],
+  ['valoraciones', 'Valoraciones', '★'],
+  ['config', 'Configuración', '⚙'],
 ];
 
-function Stat({ label, value }) {
-  return <Card style={{ flexGrow: 1, minWidth: 130 }}><Text style={styles.itemMeta}>{label}</Text><Text style={styles.statNumber}>{value ?? '—'}</Text></Card>;
+function Stat({ icon, label, value, color = colors.primary }) {
+  return (
+    <Card style={styles.adminStatCard}>
+      <View style={styles.spaceBetween}>
+        <View style={styles.adminStatIcon}><Text style={[styles.adminStatIconText, { color }]}>{icon}</Text></View>
+        <View style={[styles.adminStatAccent, { backgroundColor: color }]} />
+      </View>
+      <Text style={styles.adminStatValue}>{value ?? '—'}</Text>
+      <Text style={styles.itemMeta}>{label}</Text>
+    </Card>
+  );
+}
+
+function QuickAction({ icon, title, subtitle, onPress }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.adminAction, pressed && styles.buttonPressed]}>
+      <View style={styles.spaceBetween}>
+        <View style={styles.adminActionIcon}><Text style={styles.adminActionIconText}>{icon}</Text></View>
+        <Text style={styles.adminActionArrow}>›</Text>
+      </View>
+      <Text style={styles.adminActionTitle}>{title}</Text>
+      <Text style={styles.adminActionSubtitle}>{subtitle}</Text>
+    </Pressable>
+  );
 }
 
 function Summary({ onNavigate }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
-  useEffect(() => { adminApi.resumen().then((result) => setData(result.resumen)).catch((e) => setError(e.message)); }, []);
-  if (error) return <Message>{error}</Message>;
-  if (!data) return <Loading />;
+  const load = useCallback(async () => {
+    setError('');
+    try {
+      const result = await adminApi.resumen();
+      setData(result.resumen);
+    } catch (e) {
+      setError(e.message);
+    }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  if (error && !data) return <><Message>{error}</Message><Button title="Reintentar" variant="secondary" onPress={load} /></>;
+  if (!data) return <Loading label="Preparando el panel…" />;
+  const total = Number(data.consultas_total) || 0;
+  const completed = Number(data.finalizadas) || 0;
+  const completion = total ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+
   return <>
-    <View style={styles.row}>
-      <Stat label="Consultas totales" value={data.consultas_total} />
-      <Stat label="Pendientes" value={data.pendientes} />
-      <Stat label="Activas" value={data.activas} />
-      <Stat label="Finalizadas" value={data.finalizadas} />
-      <Stat label="Técnicos habilitados" value={data.tecnicos_habilitados} />
-      <Stat label="Locales activos" value={data.locales_activos} />
-      <Stat label="Valoraciones" value={data.valoraciones_total} />
-      <Stat label="Promedio general" value={data.promedio_general ?? '—'} />
+    {!!error && <Message>{error}</Message>}
+    <View style={styles.adminHero}>
+      <View style={styles.spaceBetween}>
+        <View style={{ flex: 1, gap: 5 }}>
+          <Text style={styles.adminHeroEyebrow}>CENTRO DE CONTROL</Text>
+          <Text style={styles.adminHeroTitle}>Vista general</Text>
+          <Text style={styles.adminHeroSubtitle}>El estado del soporte, de un vistazo.</Text>
+        </View>
+        <View style={styles.adminHeroBadge}><Text style={styles.adminHeroBadgeText}>▦</Text></View>
+      </View>
+      <View style={styles.adminHeroDivider} />
+      <View style={styles.adminHeroMetrics}>
+        <View style={styles.adminHeroMetric}>
+          <Text style={styles.adminHeroMetricValue}>{data.consultas_total ?? 0}</Text>
+          <Text style={styles.adminHeroMetricLabel}>CONSULTAS</Text>
+        </View>
+        <View style={styles.adminHeroMetricDivider} />
+        <Pressable accessibilityRole="button" onPress={() => onNavigate('pendientes')} style={styles.adminHeroMetric}>
+          <Text style={styles.adminHeroMetricValue}>{data.pendientes ?? 0}</Text>
+          <Text style={styles.adminHeroMetricLabel}>PENDIENTES ›</Text>
+        </Pressable>
+        <View style={styles.adminHeroMetricDivider} />
+        <View style={styles.adminHeroMetric}>
+          <Text style={styles.adminHeroMetricValue}>{completion}%</Text>
+          <Text style={styles.adminHeroMetricLabel}>FINALIZADAS</Text>
+        </View>
+      </View>
     </View>
-    <Button title="Ver consultas pendientes" onPress={() => onNavigate('pendientes')} />
+
+    <View style={styles.spaceBetween}>
+      <Text style={styles.adminSectionTitle}>Indicadores</Text>
+      <Pressable accessibilityRole="button" onPress={load}><Text style={styles.adminRefresh}>Actualizar</Text></Pressable>
+    </View>
+    <View style={styles.adminStatsGrid}>
+      <Stat icon="◷" label="Consultas activas" value={data.activas} color={colors.primary} />
+      <Stat icon="✓" label="Finalizadas" value={data.finalizadas} color={colors.green} />
+      <Stat icon="♙" label="Técnicos habilitados" value={data.tecnicos_habilitados} color={colors.amber} />
+      <Stat icon="⌖" label="Locales activos" value={data.locales_activos} color={colors.primaryDark} />
+      <Stat icon="★" label="Valoraciones" value={data.valoraciones_total} color={colors.rating} />
+      <Stat icon="✦" label="Promedio general" value={data.promedio_general == null ? '—' : Number(data.promedio_general).toFixed(1)} color={colors.rating} />
+    </View>
+
+    <View style={styles.adminProgressCard}>
+      <View style={styles.spaceBetween}>
+        <View>
+          <Text style={styles.adminSectionTitle}>Consultas resueltas</Text>
+          <Text style={styles.itemMeta}>{completed} de {total} finalizadas</Text>
+        </View>
+        <Text style={styles.adminProgressPercent}>{completion}%</Text>
+      </View>
+      <View style={styles.adminProgressTrack}>
+        <View style={[styles.adminProgressFill, { width: `${completion}%` }]} />
+      </View>
+    </View>
+
+    <View style={styles.adminSectionHeading}>
+      <Text style={styles.adminSectionTitle}>Accesos rápidos</Text>
+      <Text style={styles.itemMeta}>Administrá lo más importante</Text>
+    </View>
+    <View style={styles.adminActionsGrid}>
+      <QuickAction icon="◷" title="Pendientes" subtitle="Asignar consultas" onPress={() => onNavigate('pendientes')} />
+      <QuickAction icon="♙" title="Técnicos" subtitle="Gestionar el equipo" onPress={() => onNavigate('tecnicos')} />
+      <QuickAction icon="⌖" title="Locales" subtitle="Ver sucursales" onPress={() => onNavigate('locales')} />
+      <QuickAction icon="▤" title="Estadísticas" subtitle="Revisar actividad" onPress={() => onNavigate('estadisticas')} />
+    </View>
   </>;
 }
 
@@ -314,8 +403,27 @@ function Configuration() {
 export default function AdminScreen({ onOpenConsultation }) {
   const [tab, setTab] = useState('resumen');
   return <MotionScrollView contentContainerStyle={styles.content}>
-    <Heading title="Administración" subtitle="Gestioná consultas, técnicos, locales y métricas." />
-    <View style={styles.row}>{TABS.map(([id, label]) => <Button key={id} title={tab === id ? `✓ ${label}` : label} small variant={tab === id ? 'primary' : 'secondary'} onPress={() => setTab(id)} />)}</View>
+    <View style={styles.adminPageHeading}>
+      <Text style={styles.adminPageEyebrow}>TECNOFIX</Text>
+      <Heading title="Administración" subtitle="Gestioná consultas, equipo y locales desde un solo lugar." />
+    </View>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.adminTabList}>
+      {TABS.map(([id, label, icon]) => {
+        const selected = tab === id;
+        return (
+          <Pressable
+            key={id}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
+            onPress={() => setTab(id)}
+            style={[styles.adminTab, selected && styles.adminTabActive]}
+          >
+            <Text style={[styles.adminTabIcon, selected && styles.adminTabTextActive]}>{icon}</Text>
+            <Text style={[styles.adminTabText, selected && styles.adminTabTextActive]}>{label}</Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
     {tab === 'resumen' && <Summary onNavigate={setTab} />}
     {tab === 'pendientes' && <Pending onOpen={onOpenConsultation} />}
     {tab === 'tecnicos' && <Technicians />}

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { consultasApi } from './api';
-import { Button, Card, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, statusLabel, styles } from './ui';
+import { Button, Card, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, statusLabel, styles, useKeyboardScroll } from './ui';
 
 const TECH_ACTIONS = {
   asignada: [['en_proceso', 'Comenzar atención']],
@@ -16,7 +16,8 @@ function messageTime(value) {
     : date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 }
 
-function Chat({ consultaId, currentUserId, cerrada, canSend, reload, onComposerFocus, onComposerBlur }) {
+function Chat({ consultaId, currentUserId, cerrada, canSend, reload }) {
+  const keyboardScroll = useKeyboardScroll();
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -117,8 +118,8 @@ function Chat({ consultaId, currentUserId, cerrada, canSend, reload, onComposerF
               maxLength={2000}
               editable={!busy}
               returnKeyType="default"
-              onFocus={onComposerFocus}
-              onBlur={onComposerBlur}
+              onFocus={keyboardScroll?.onInputFocus}
+              onBlur={keyboardScroll?.onInputBlur}
               style={styles.composerInput}
             />
             <Pressable
@@ -169,10 +170,6 @@ function Rating({ consulta, onRated }) {
 }
 
 export default function DetailScreen({ id, user, onBack, onDone }) {
-  const detailScrollRef = React.useRef(null);
-  const chatInputFocused = React.useRef(false);
-  const keyboardScrollTimer = React.useRef(null);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [consulta, setConsulta] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -189,36 +186,6 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
     }
   }, [id]);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => {
-    const subscription = Keyboard.addListener('keyboardDidShow', (event) => {
-      setKeyboardVisible(true);
-      if (chatInputFocused.current) {
-        Keyboard.scheduleLayoutAnimation(event);
-        clearTimeout(keyboardScrollTimer.current);
-        keyboardScrollTimer.current = setTimeout(() => {
-          detailScrollRef.current?.scrollToEnd({ animated: true });
-          keyboardScrollTimer.current = setTimeout(() => {
-            detailScrollRef.current?.scrollToEnd({ animated: true });
-          }, 120);
-        }, Platform.OS === 'android' ? 320 : 100);
-      }
-    });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-    return () => {
-      subscription.remove();
-      hideSubscription.remove();
-      clearTimeout(keyboardScrollTimer.current);
-    };
-  }, []);
-  const revealChatComposer = () => {
-    chatInputFocused.current = true;
-    clearTimeout(keyboardScrollTimer.current);
-    keyboardScrollTimer.current = setTimeout(() => {
-      detailScrollRef.current?.scrollToEnd({ animated: true });
-    }, Platform.OS === 'android' ? 320 : 100);
-  };
 
   const changeStatus = (next) => {
     const execute = async () => {
@@ -251,9 +218,8 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
       keyboardVerticalOffset={0}
     >
     <MotionScrollView
-      ref={detailScrollRef}
       style={{ flex: 1 }}
-      contentContainerStyle={[styles.content, keyboardVisible && { paddingBottom: 180 }]}
+      contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
       <Button title="← Volver" onPress={onBack} variant="secondary" />
@@ -283,8 +249,6 @@ export default function DetailScreen({ id, user, onBack, onDone }) {
         cerrada={closed}
         canSend={user.rol !== 'admin'}
         reload={load}
-        onComposerFocus={revealChatComposer}
-        onComposerBlur={() => { chatInputFocused.current = false; }}
       />
       {user.rol === 'admin' && <Button title="Volver al panel" variant="secondary" onPress={onDone} />}
     </MotionScrollView>
