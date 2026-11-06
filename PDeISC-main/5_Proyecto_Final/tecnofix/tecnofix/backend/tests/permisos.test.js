@@ -37,6 +37,15 @@ test('endpoints protegidos exigen autenticación', async () => {
   for (const u of ['/consultas', '/admin/resumen', '/tecnico/resumen']) assert.equal((await api().get(u)).status, 401, u);
 });
 
+test('el registro de notificaciones push valida el token y requiere cliente o técnico autenticado', async () => {
+  const token = 'ExponentPushToken[test-device-123]';
+  assert.equal((await api(cli1.token).post('/notificaciones/dispositivo').send({ token, plataforma: 'android' })).status, 201);
+  assert.equal((await api(cli1.token).delete('/notificaciones/dispositivo').send({ token })).status, 200);
+  assert.equal((await api(cli1.token).post('/notificaciones/dispositivo').send({ token: 'invalid', plataforma: 'android' })).status, 400);
+  assert.equal((await api(admTok).post('/notificaciones/dispositivo').send({ token, plataforma: 'android' })).status, 403);
+  assert.equal((await api().post('/notificaciones/dispositivo').send({ token, plataforma: 'android' })).status, 401);
+});
+
 test('un cliente solo ve sus propias consultas', async () => {
   assert.equal((await api(cli2.token).get(`/consultas/${consulta.id}`)).status, 404);
   assert.equal((await api(cli2.token).get(`/consultas/${consulta.id}/mensajes`)).status, 404);

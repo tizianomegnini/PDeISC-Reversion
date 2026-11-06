@@ -14,7 +14,7 @@
     "db:reset": "node scripts/init-db.js --drop",
     "db:seed": "node scripts/seed.js",
     "create-admin": "node scripts/create-admin.js",
-    "test": "node --test --test-concurrency=1 tests/auth.test.js tests/permisos.test.js tests/asignacion.test.js tests/valoraciones.test.js"
+    "test": "node --test --test-concurrency=1 tests/auth.test.js tests/permisos.test.js tests/asignacion.test.js tests/valoraciones.test.js tests/push.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

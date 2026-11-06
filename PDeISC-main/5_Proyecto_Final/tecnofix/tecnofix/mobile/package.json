@@ -9,14 +9,17 @@
     "build:apk": "eas build --platform android --profile preview"
   },
   "dependencies": {
-    "expo": "~58.0.21",
-    "expo-linking": "~58.0.15",
+    "expo": "~58.0.23",
+    "expo-constants": "~58.0.15",
+    "expo-device": "~58.0.5",
+    "expo-linking": "~58.0.16",
+    "expo-notifications": "~58.1.8",
     "expo-secure-store": "~58.0.0",
     "expo-status-bar": "~58.0.3",
     "expo-web-browser": "~58.0.7",
     "react": "19.3.0",
-    "react-native": "0.88.0",
-    "react-native-safe-area-context": "~5.10.1"
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1"
   },
   "devDependencies": {
     "eas-cli": "^25.2.0"

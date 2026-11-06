@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.js';
 import consultasRoutes from './routes/consultas.js';
 import tecnicoRoutes from './routes/tecnico.js';
 import adminRoutes from './routes/admin.js';
+import notificacionesRoutes from './routes/notificaciones.js';
 
 export function createApp() {
   const app = express();
@@ -30,6 +31,7 @@ export function createApp() {
   api.get('/health', (_req, res) => res.json({ ok: true }));
   api.use('/auth', authRoutes);
   api.use('/consultas', consultasRoutes);
+  api.use('/notificaciones', notificacionesRoutes);
   api.use('/tecnico', tecnicoRoutes);
   api.use('/admin', adminRoutes);
   app.use('/api/v1', api);

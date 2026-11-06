@@ -45,6 +45,10 @@ export const schemas = {
     estrellas: z.number({ invalid_type_error: 'Las estrellas deben ser un número', required_error: 'Indique las estrellas' }).int().min(1, 'Mínimo 1 estrella').max(5, 'Máximo 5 estrellas'),
     comentario: z.string().trim().max(500).optional().nullable().transform((v) => v || null),
   }),
+  pushToken: z.object({
+    token: z.string().regex(/^(Expo|Exponent)PushToken\[[A-Za-z0-9_-]+\]$/, 'Token push inválido').max(255),
+    plataforma: z.enum(['android', 'ios']),
+  }),
   tecnicoCrear: z.object({
     nombre: texto(1, 80, 'El nombre'), apellido: texto(1, 80, 'El apellido'), email: emailSchema, telefono,
     local_id: z.number().int().positive('Seleccione un local'),

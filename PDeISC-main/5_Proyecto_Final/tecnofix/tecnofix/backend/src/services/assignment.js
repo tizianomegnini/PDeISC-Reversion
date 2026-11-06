@@ -1,4 +1,5 @@
 import { pool, withTransaction, audit } from '../config/db.js';
+import { notifyUser } from './push.js';
 
 /** Estados que consumen cupo del técnico. Deben coincidir con el comentario de schema.sql. */
 export const ESTADOS_ACTIVOS = ['asignada', 'en_proceso', 'esperando_cliente'];
@@ -55,8 +56,32 @@ export async function asignarEnConexion(conn, consultaId, actorId = null) {
   return elegido.id;
 }
 
-export const asignarConsulta = (consultaId, actorId = null) =>
-  withTransaction((conn) => asignarEnConexion(conn, consultaId, actorId));
+export async function asignarConsulta(consultaId, actorId = null) {
+  const tecnicoId = await withTransaction((conn) => asignarEnConexion(conn, consultaId, actorId));
+  if (tecnicoId) {
+    const [rows] = await pool.execute(
+      `SELECT c.cliente_id, t.usuario_id AS tecnico_usuario_id
+         FROM consultas c JOIN tecnicos t ON t.id = c.tecnico_id WHERE c.id = ?`,
+      [consultaId],
+    );
+    if (rows[0]) {
+      const notification = {
+        title: 'Consulta asignada',
+        body: `La consulta #${consultaId} fue asignada a un técnico.`,
+        data: { type: 'estado', consultaId, estado: 'asignada' },
+      };
+      await Promise.all([
+        notifyUser(rows[0].cliente_id, notification, 'consulta asignada'),
+        notifyUser(rows[0].tecnico_usuario_id, {
+          ...notification,
+          title: 'Nueva consulta asignada',
+          body: `Tenés una nueva consulta asignada (#${consultaId}).`,
+        }, 'consulta asignada'),
+      ]);
+    }
+  }
+  return tecnicoId;
+}
 
 /** Reintenta asignar las pendientes (más antiguas primero). Corta al primer fallo: si no hay cupo para una, no hay para ninguna. */
 export async function reintentarPendientes(actorId = null) {

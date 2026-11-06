@@ -53,6 +53,16 @@ CREATE TABLE IF NOT EXISTS oauth_mobile_codes (
   CONSTRAINT fk_oauth_mobile_codes_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS push_tokens (
+  token VARCHAR(255) NOT NULL PRIMARY KEY,
+  usuario_id INT UNSIGNED NOT NULL,
+  plataforma ENUM('android','ios') NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_push_tokens_usuario (usuario_id),
+  CONSTRAINT fk_push_tokens_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS tecnicos (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT UNSIGNED NOT NULL,

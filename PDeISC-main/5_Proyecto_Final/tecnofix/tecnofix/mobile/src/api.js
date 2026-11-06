@@ -53,7 +53,7 @@ const get = (path) => request('GET', path);
 const post = (path, body = {}) => request('POST', path, body);
 const put = (path, body) => request('PUT', path, body);
 const patch = (path, body) => request('PATCH', path, body);
-const del = (path) => request('DELETE', path);
+const del = (path, body) => request('DELETE', path, body);
 
 export const authApi = {
   me: () => get('/auth/me'),
@@ -65,6 +65,11 @@ export const authApi = {
   ),
   updateProfile: (data) => put('/auth/me', data),
   changePassword: (data) => post('/auth/change-password', data),
+};
+
+export const notificationsApi = {
+  registerDevice: (token, plataforma) => post('/notificaciones/dispositivo', { token, plataforma }),
+  unregisterDevice: (token) => del('/notificaciones/dispositivo', { token }),
 };
 
 export const consultasApi = {

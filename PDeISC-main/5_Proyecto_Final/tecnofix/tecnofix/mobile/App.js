@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Keyboard, Pressable, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView as InsetsSafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
 import { authApi, restoreToken, saveToken } from './src/api';
+import { registerPushNotifications, unregisterPushNotifications } from './src/notifications';
 import AdminScreen from './src/AdminScreen';
 import AuthScreen from './src/AuthScreen';
 import DetailScreen from './src/DetailScreen';
@@ -60,6 +62,7 @@ function AppContent() {
   const [restoreError, setRestoreError] = useState('');
   const [themeMode, setThemeModeState] = useState(getThemeMode());
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [notificationTarget, setNotificationTarget] = useState(null);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -69,6 +72,38 @@ function AppContent() {
       hideSubscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    const handleNotificationResponse = (response) => {
+      const consultationId = Number(response.notification.request.content.data?.consultaId);
+      if (Number.isInteger(consultationId) && consultationId > 0) setNotificationTarget(consultationId);
+    };
+    const subscription = Notifications.addNotificationResponseReceivedListener(handleNotificationResponse);
+    Notifications.getLastNotificationResponseAsync().then(async (response) => {
+      if (response) handleNotificationResponse(response);
+      await Notifications.clearLastNotificationResponseAsync();
+    }).catch((error) => {
+      console.error('No se pudo procesar la notificación abierta:', error);
+    });
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    if (!user || user.rol === 'admin' || user.debe_cambiar_password) return;
+    registerPushNotifications().then(({ status }) => {
+      if (status === 'denied') console.info('Las notificaciones están desactivadas para esta app.');
+      if (status === 'unsupported') console.info('Las notificaciones push requieren un dispositivo Android o iOS físico.');
+    }).catch((error) => {
+      console.error('No se pudieron activar las notificaciones móviles:', error);
+    });
+  }, [user?.id, user?.rol, user?.debe_cambiar_password]);
+
+  useEffect(() => {
+    if (!user || !notificationTarget) return;
+    setSelectedId(notificationTarget);
+    setScreen('detail');
+    setNotificationTarget(null);
+  }, [user, notificationTarget]);
 
   useEffect(() => {
     let active = true;
@@ -123,6 +158,11 @@ function AppContent() {
   const logout = () => Alert.alert('Cerrar sesión', '¿Querés salir de TecnoFix Soporte?', [
     { text: 'Cancelar', style: 'cancel' },
     { text: 'Cerrar sesión', style: 'destructive', onPress: async () => {
+      try {
+        await unregisterPushNotifications();
+      } catch (error) {
+        console.error('No se pudo desvincular el dispositivo de las notificaciones:', error);
+      }
       await saveToken(null);
       setUser(null);
       setScreen('home');

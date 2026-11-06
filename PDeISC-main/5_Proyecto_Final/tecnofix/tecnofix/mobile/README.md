@@ -39,6 +39,19 @@ Expo Go sirve para probar la app durante el desarrollo; no es el APK instalable 
 
 El perfil `production` está preparado para una compilación de distribución; EAS genera normalmente un AAB para Google Play. Para compartir e instalar directamente un APK, usar el perfil `preview`.
 
+## Notificaciones push
+
+La app registra el dispositivo después de iniciar sesión como cliente o técnico. Las notificaciones abren la consulta correspondiente y avisan sobre cambios de estado, mensajes nuevos y valoraciones recibidas por el técnico. El texto de los mensajes y comentarios no se envía al proveedor push.
+
+Para habilitarlas en producción:
+
+1. Desplegar el backend actualizado y ejecutar `npm run db:init` desde `backend/` contra la base de producción. Esto crea `push_tokens` sin borrar las demás tablas ni sus datos; no usar `npm run db:reset`.
+2. En Firebase, crear una app Android con el package `com.tecnofix.app` y generar una clave de cuenta de servicio de Firebase Cloud Messaging (FCM V1).
+3. Cargar esa clave en las credenciales de Android del proyecto EAS (`npx eas credentials --platform android`). No guardar ni subir el archivo de clave al repositorio.
+4. Generar e instalar un APK nuevo con el perfil `preview`. Las notificaciones push se deben probar en un dispositivo físico; Android debe tener habilitado el permiso de notificaciones para TecnoFix.
+
+La app solicita permiso al iniciar sesión. Si se rechaza, se puede habilitar desde los ajustes del sistema. Al cerrar sesión, se intenta desvincular el token push del usuario.
+
 ## Cuenta y seguridad
 
 - El cliente inicia sesión con email y contraseña o se registra como cliente.
