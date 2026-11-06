@@ -18,6 +18,14 @@ La app se muestra como **TecnoFix Soporte** en el dispositivo y usa el icono y l
 
 Expo Go sirve para probar la app durante el desarrollo; no es el APK instalable final.
 
+## Desarrollo con TypeScript
+
+El código móvil usa TypeScript (`.ts` y `.tsx`). Al instalar dependencias, se instalan también TypeScript y los tipos de React. Para validar los tipos antes de iniciar Expo o generar un APK:
+
+```powershell
+npm run typecheck
+```
+
 ## Generar un APK con EAS
 
 1. Instalar dependencias y autenticarse con la cuenta de Expo:

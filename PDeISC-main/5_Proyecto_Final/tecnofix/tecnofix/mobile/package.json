@@ -2,11 +2,12 @@
   "name": "tecnofix-mobile",
   "version": "1.0.0",
   "private": true,
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "build:apk": "eas build --platform android --profile preview"
+    "build:apk": "eas build --platform android --profile preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "expo": "~58.0.23",
@@ -22,6 +23,8 @@
     "react-native-safe-area-context": "~5.11.1"
   },
   "devDependencies": {
-    "eas-cli": "^25.2.0"
+    "@types/react": "~19.2.0",
+    "eas-cli": "^25.2.0",
+    "typescript": "~5.9.2"
   }
 }
