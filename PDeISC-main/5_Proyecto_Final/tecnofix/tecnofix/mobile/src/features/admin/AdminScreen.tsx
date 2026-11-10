@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { adminApi } from '../../api';
 import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, styles } from '../../ui';
 import { getErrorMessage, type AdminSummary, type Consultation, type Location, type Review, type StatisticsResponse, type Technician } from '../../types';
+import AdminCharts from './AdminCharts';
+import AdminConfirmDialog, { type TechnicianAction } from './AdminConfirmDialog';
 
 const TABS = [
   ['resumen', 'Resumen', '▦'],
@@ -187,6 +189,9 @@ function Technicians() {
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [confirmation, setConfirmation] = useState<{ technician: Technician; action: TechnicianAction } | null>(null);
+  const [confirmError, setConfirmError] = useState('');
+  const [confirmBusy, setConfirmBusy] = useState(false);
   const [form, setForm] = useState({ nombre: '', apellido: '', email: '', telefono: '', local_id: '', especialidad: '', limite_consultas: '20' });
   const update = (key: keyof typeof form) => (value: string) => setForm((current) => ({ ...current, [key]: value }));
   const load = useCallback(async () => {
@@ -210,9 +215,29 @@ function Technicians() {
       await load();
     } catch (e) { setError(getErrorMessage(e)); }
   };
-  const toggle = async (item: Technician) => {
-    try { await adminApi.estadoTecnico(item.id, !item.activo); await load(); }
-    catch (e) { setError(getErrorMessage(e)); }
+  const requestConfirmation = (technician: Technician, action: TechnicianAction) => {
+    setConfirmError('');
+    setConfirmation({ technician, action });
+  };
+  const confirmAction = async () => {
+    if (!confirmation || confirmBusy) return;
+    setConfirmBusy(true);
+    setConfirmError('');
+    try {
+      const { technician, action } = confirmation;
+      if (action === 'activate') await adminApi.estadoTecnico(technician.id, true);
+      else if (action === 'deactivate') await adminApi.estadoTecnico(technician.id, false);
+      else await adminApi.eliminarTecnico(technician.id);
+      setConfirmation(null);
+      setMessage(action === 'delete'
+        ? 'Técnico eliminado. Se conserva su historial.'
+        : action === 'activate' ? 'Técnico activado.' : 'Técnico desactivado.');
+      await load();
+    } catch (e) {
+      setConfirmError(getErrorMessage(e));
+    } finally {
+      setConfirmBusy(false);
+    }
   };
   const beginEdit = (item: Technician) => {
     setEditing({
@@ -249,13 +274,6 @@ function Technicians() {
       await load();
     } catch (e) { setError(getErrorMessage(e)); }
   };
-  const remove = (item: Technician) => Alert.alert('Eliminar técnico', `¿Eliminar a ${item.nombre} ${item.apellido}?`, [
-    { text: 'Cancelar', style: 'cancel' },
-    { text: 'Eliminar', style: 'destructive', onPress: async () => {
-      try { await adminApi.eliminarTecnico(item.id); await load(); }
-      catch (e) { setError(getErrorMessage(e)); }
-    } },
-  ]);
   const updateEditing = <K extends keyof TechnicianEdit,>(key: K, value: TechnicianEdit[K]) => {
     setEditing((current) => current ? { ...current, [key]: value } : current);
   };
@@ -297,12 +315,30 @@ function Technicians() {
           <Text style={styles.itemMeta}>{item.activo && item.habilitado ? 'Habilitado' : 'Desactivado'} · {item.activas} activas · {item.atendidas} finalizadas · {item.promedio ?? 'Sin valoraciones'}</Text>
           <View style={styles.row}>
             <Button small title="Editar" variant="secondary" onPress={() => beginEdit(item)} />
-            <Button small title={item.activo ? 'Desactivar' : 'Activar'} variant="secondary" onPress={() => toggle(item)} />
-            <Button small title="Eliminar" variant="danger" onPress={() => remove(item)} />
+            <Button
+              small
+              title={item.activo ? 'Desactivar' : 'Activar'}
+              variant="secondary"
+              onPress={() => requestConfirmation(item, item.activo ? 'deactivate' : 'activate')}
+            />
+            <Button small title="Eliminar" variant="danger" onPress={() => requestConfirmation(item, 'delete')} />
           </View>
         </>}
       </Card>
     ))}
+    <AdminConfirmDialog
+      technician={confirmation?.technician ?? null}
+      action={confirmation?.action ?? null}
+      busy={confirmBusy}
+      error={confirmError}
+      onCancel={() => {
+        if (!confirmBusy) {
+          setConfirmation(null);
+          setConfirmError('');
+        }
+      }}
+      onConfirm={confirmAction}
+    />
   </>;
 }
 
@@ -391,14 +427,36 @@ function Locations() {
 
 function Statistics() {
   const [data, setData] = useState<StatisticsResponse | null>(null);
+  const [summary, setSummary] = useState<AdminSummary | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [error, setError] = useState('');
-  useEffect(() => { adminApi.estadisticas().then(setData).catch((e: unknown) => setError(getErrorMessage(e))); }, []);
+  const load = useCallback(async () => {
+    setError('');
+    try {
+      const [statistics, summaryResult, reviewResult] = await Promise.all([
+        adminApi.estadisticas(),
+        adminApi.resumen(),
+        adminApi.valoraciones(),
+      ]);
+      setData(statistics);
+      setSummary(summaryResult.resumen);
+      setReviews(reviewResult.valoraciones);
+    } catch (e) {
+      setError(getErrorMessage(e));
+    }
+  }, []);
+  useEffect(() => { load(); }, [load]);
   if (error) return <Message>{error}</Message>;
-  if (!data) return <Loading />;
+  if (!data || !summary) return <Loading label="Preparando las estadísticas…" />;
   return <>
-    <Heading title="Técnicos" />
+    <Heading title="Estadísticas" subtitle="Actividad y experiencia del servicio, de un vistazo." />
+    <AdminCharts summary={summary} statistics={data} reviews={reviews} />
+    <View style={styles.adminSectionHeading}>
+      <Text style={styles.adminSectionTitle}>Detalle por técnico</Text>
+      <Pressable accessibilityRole="button" onPress={load}><Text style={styles.adminRefresh}>Actualizar</Text></Pressable>
+    </View>
     {data.tecnicos.map((item) => <Card key={item.id}><Text style={styles.itemTitle}>{item.nombre} {item.apellido}</Text><Text style={styles.muted}>{item.local_nombre} · {item.activas} activas · {item.atendidas} finalizadas · promedio {item.promedio ?? '—'}</Text></Card>)}
-    <Heading title="Locales" />
+    <View style={styles.adminSectionHeading}><Text style={styles.adminSectionTitle}>Detalle por local</Text></View>
     {data.locales.map((item) => <Card key={item.id}><Text style={styles.itemTitle}>{item.nombre}</Text><Text style={styles.muted}>{item.tecnicos} técnicos · {item.activas} activas · {item.atendidas} finalizadas · promedio {item.promedio ?? '—'}</Text></Card>)}
   </>;
 }

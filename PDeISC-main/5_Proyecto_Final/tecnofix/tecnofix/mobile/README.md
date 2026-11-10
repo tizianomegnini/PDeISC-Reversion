@@ -4,6 +4,8 @@ Esta es la app React Native. Se conecta al mismo backend que el sitio web; no co
 
 La app se muestra como **TecnoFix Soporte** en el dispositivo y usa el icono y la identidad visual de `assets/`. Incluye tema claro/oscuro persistente, áreas seguras para las barras del sistema, transiciones suaves al desplazarse por las pantallas, una conversación con burbujas inspiradas en WhatsApp y ajuste del scroll al abrir el teclado. En Android, el teclado redimensiona la ventana, oculta la navegación inferior mientras está abierto y deja espacio extra debajo del chat para mantener visible el campo de escritura.
 
+El panel de administración incluye gráficos de actividad por estado, local y técnico, distribución de valoraciones y diálogos de confirmación para activar, desactivar o eliminar técnicos.
+
 ## Probar con Expo Go
 
 1. Instalar Node.js y Expo Go en el teléfono.

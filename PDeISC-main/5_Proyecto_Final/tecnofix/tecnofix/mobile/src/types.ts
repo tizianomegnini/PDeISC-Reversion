@@ -64,6 +64,7 @@ export interface Technician {
   activas: number;
   atendidas: number;
   promedio?: number | null;
+  deleted_at?: string | null;
 }
 
 export interface Location {
@@ -146,7 +147,7 @@ export interface TechnicianSummary {
 }
 
 export interface StatisticsResponse {
-  tecnicos: Array<Pick<Technician, 'id' | 'nombre' | 'apellido' | 'local_nombre' | 'activas' | 'atendidas' | 'promedio'>>;
+  tecnicos: Array<Pick<Technician, 'id' | 'nombre' | 'apellido' | 'local_nombre' | 'activas' | 'atendidas' | 'promedio' | 'deleted_at'>>;
   locales: Array<Pick<Location, 'id' | 'nombre' | 'tecnicos' | 'activas' | 'atendidas'> & { promedio?: number | null }>;
 }
 
