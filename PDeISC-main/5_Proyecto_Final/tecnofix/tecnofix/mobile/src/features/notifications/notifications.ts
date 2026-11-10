@@ -3,7 +3,7 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { notificationsApi } from './api';
+import { notificationsApi } from '../../api';
 
 const PUSH_TOKEN_KEY = 'tecnofix-push-token';
 export type PushRegistrationResult = { status: 'unsupported' | 'denied' | 'registered' };

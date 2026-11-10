@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Alert, View } from 'react-native';
-import { authApi } from './api';
-import { Button, Card, Field, Heading, Message, MotionScrollView, fullName, styles } from './ui';
-import { getErrorMessage, type ThemeMode, type User } from './types';
+import { authApi } from '../../api';
+import { Button, Card, Field, Heading, Message, MotionScrollView, fullName, styles } from '../../ui';
+import { getErrorMessage, type ThemeMode, type User } from '../../types';
 
 interface ProfileForm {
   nombre: string;

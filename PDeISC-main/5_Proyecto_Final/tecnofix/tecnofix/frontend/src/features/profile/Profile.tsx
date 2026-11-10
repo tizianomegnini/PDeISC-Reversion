@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import { authApi } from '../services/api';
-import { errorMessage } from '../services/api';
-import { formFieldSetter } from '../utils';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { authApi, errorMessage } from '../../services/api';
+import { formFieldSetter } from '../../utils';
 import type { FormEvent } from 'react';
 
 export default function Profile() {

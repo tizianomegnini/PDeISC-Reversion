@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { adminApi } from './api';
-import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, styles } from './ui';
-import { getErrorMessage, type AdminSummary, type Consultation, type Location, type Review, type StatisticsResponse, type Technician } from './types';
+import { adminApi } from '../../api';
+import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, styles } from '../../ui';
+import { getErrorMessage, type AdminSummary, type Consultation, type Location, type Review, type StatisticsResponse, type Technician } from '../../types';
 
 const TABS = [
   ['resumen', 'Resumen', '▦'],

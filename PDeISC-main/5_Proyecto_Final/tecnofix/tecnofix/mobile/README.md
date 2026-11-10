@@ -26,6 +26,18 @@ El código móvil usa TypeScript (`.ts` y `.tsx`). Al instalar dependencias, se 
 npm run typecheck
 ```
 
+### Organización del código
+
+- `src/features/auth`: inicio de sesión, registro y autenticación social.
+- `src/features/consultations`: listado, creación y detalle de consultas.
+- `src/features/admin`: gestión administrativa.
+- `src/features/profile`: perfil y cambio de contraseña.
+- `src/features/notifications`: registro y baja de notificaciones push.
+- `src/api.ts`: comunicación HTTP con el backend.
+- `src/types.ts` y `src/ui.tsx`: tipos y componentes compartidos.
+
+Cada funcionalidad exporta su API pública desde `index.ts`; `App.tsx` compone esas funcionalidades sin depender de sus archivos internos.
+
 ## Generar un APK con EAS
 
 1. Instalar dependencias y autenticarse con la cuenta de Expo:

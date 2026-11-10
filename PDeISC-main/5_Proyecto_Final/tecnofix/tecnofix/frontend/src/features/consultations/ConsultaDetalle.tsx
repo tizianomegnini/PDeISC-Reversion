@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { consultasApi } from '../services/api';
-import { useFetch } from '../hooks/useFetch';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import Loading from '../components/Loading';
-import ErrorBox from '../components/ErrorBox';
-import EstadoBadge from '../components/EstadoBadge';
-import Stars from '../components/Stars';
-import Chat from '../components/Chat';
-import { equipo, fecha, nombreCompleto } from '../utils';
-import { errorMessage } from '../services/api';
-import type { EstadoConsulta } from '../types';
+import { consultasApi, errorMessage } from '../../services/api';
+import { useFetch } from '../../hooks/useFetch';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import Loading from '../../components/Loading';
+import ErrorBox from '../../components/ErrorBox';
+import EstadoBadge from '../../components/EstadoBadge';
+import Stars from '../../components/Stars';
+import Chat from '../../components/Chat';
+import { equipo, fecha, nombreCompleto } from '../../utils';
+import type { EstadoConsulta } from '../../types';
 import type { FormEvent } from 'react';
 
 // Debe reflejar las transiciones del backend (backend/src/services/consultas.js). El backend es quien las valida.

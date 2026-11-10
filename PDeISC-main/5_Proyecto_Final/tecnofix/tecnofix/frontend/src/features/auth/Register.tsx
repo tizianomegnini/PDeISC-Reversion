@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import { errorMessage } from '../services/api';
-import { formFieldSetter } from '../utils';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { errorMessage } from '../../services/api';
+import { formFieldSetter } from '../../utils';
 import type { FormEvent } from 'react';
 
 export default function Register() {

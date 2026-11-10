@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import { homePorRol } from '../components/ProtectedRoute';
-import { authApi, errorMessage } from '../services/api';
-import { formFieldSetter } from '../utils';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { homePorRol } from '../../components/ProtectedRoute';
+import { authApi, errorMessage } from '../../services/api';
+import { formFieldSetter } from '../../utils';
 import type { FormEvent } from 'react';
 
 export default function Login() {

@@ -4,12 +4,11 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView as InsetsSafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { ApiError, authApi, restoreToken, saveToken } from './src/api';
-import { registerPushNotifications, unregisterPushNotifications } from './src/notifications';
-import AdminScreen from './src/AdminScreen';
-import AuthScreen from './src/AuthScreen';
-import DetailScreen from './src/DetailScreen';
-import HomeScreen from './src/HomeScreen';
-import ProfileScreen from './src/ProfileScreen';
+import { registerPushNotifications, unregisterPushNotifications } from './src/features/notifications';
+import { AdminScreen } from './src/features/admin';
+import { AuthScreen } from './src/features/auth';
+import { DetailScreen, HomeScreen } from './src/features/consultations';
+import { ProfileScreen } from './src/features/profile';
 import { BrandMark, Loading, colors, fullName, getThemeMode, saveThemeMode, setThemeMode, styles, restoreThemeMode } from './src/ui';
 import { getErrorMessage, type ThemeMode, type User, type UserRole } from './src/types';
 

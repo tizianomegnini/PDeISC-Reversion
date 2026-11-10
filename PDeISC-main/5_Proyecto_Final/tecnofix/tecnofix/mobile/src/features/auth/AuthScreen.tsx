@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import { authApi, getOAuthRedirectUri, saveToken } from './api';
-import { BrandMark, Button, Card, Field, Heading, Message, MotionScrollView, styles } from './ui';
-import { getErrorMessage, type AuthForm, type ThemeMode, type User } from './types';
+import { authApi, getOAuthRedirectUri, saveToken } from '../../api';
+import { BrandMark, Button, Card, Field, Heading, Message, MotionScrollView, styles } from '../../ui';
+import { getErrorMessage, type AuthForm, type ThemeMode, type User } from '../../types';
 
 const socialProviders = [
   { id: 'google', label: 'Continuar con Google' },

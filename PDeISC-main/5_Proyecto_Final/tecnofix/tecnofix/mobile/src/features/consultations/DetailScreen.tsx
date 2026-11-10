@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { consultasApi } from './api';
-import { Button, Card, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, statusLabel, styles, useKeyboardScroll } from './ui';
-import { getErrorMessage, type ChatMessage, type Consultation, type ConsultationStatus, type User } from './types';
+import { consultasApi } from '../../api';
+import { Button, Card, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, fullName, statusLabel, styles, useKeyboardScroll } from '../../ui';
+import { getErrorMessage, type ChatMessage, type Consultation, type ConsultationStatus, type User } from '../../types';
 
 const TECH_ACTIONS: Partial<Record<ConsultationStatus, Array<[ConsultationStatus, string]>>> = {
   asignada: [['en_proceso', 'Comenzar atención']],

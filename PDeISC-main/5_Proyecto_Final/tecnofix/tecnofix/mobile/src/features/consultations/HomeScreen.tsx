@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
-import { consultasApi, tecnicoApi } from './api';
-import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, statusLabel, styles } from './ui';
-import { getErrorMessage, type Consultation, type ConsultationForm, type TechnicianSummary, type User } from './types';
+import { consultasApi, tecnicoApi } from '../../api';
+import { Button, Card, Empty, Field, Heading, Loading, Message, MotionScrollView, colors, formatDate, statusLabel, styles } from '../../ui';
+import { getErrorMessage, type Consultation, type ConsultationForm, type TechnicianSummary, type User } from '../../types';
 
 const EQUIPMENT = ['Celular', 'Notebook', 'PC de escritorio', 'Tablet', 'Consola', 'Impresora', 'Otro'];
 

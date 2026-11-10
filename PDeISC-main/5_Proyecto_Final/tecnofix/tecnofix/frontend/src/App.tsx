@@ -4,19 +4,17 @@ import Navbar from './components/Navbar';
 import ProtectedRoute, { homePorRol } from './components/ProtectedRoute';
 import Loading from './components/Loading';
 import { useAuth } from './context/AuthContext';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ChangePassword from './pages/ChangePassword';
-import Profile from './pages/Profile';
-import ConsultaDetalle from './pages/ConsultaDetalle';
-import MisConsultas from './pages/cliente/MisConsultas';
-import NuevaConsulta from './pages/cliente/NuevaConsulta';
-import TecnicoPanel from './pages/tecnico/TecnicoPanel';
-import AdminResumen from './pages/admin/AdminResumen';
-import AdminPendientes from './pages/admin/AdminPendientes';
-import AdminTecnicos from './pages/admin/AdminTecnicos';
-import AdminLocales from './pages/admin/AdminLocales';
-import AdminEstadisticas from './pages/admin/AdminEstadisticas';
+import { Login, Register, ChangePassword } from './features/auth';
+import { Profile } from './features/profile';
+import { ConsultaDetalle, MisConsultas, NuevaConsulta } from './features/consultations';
+import { TecnicoPanel } from './features/technician';
+import {
+  AdminResumen,
+  AdminPendientes,
+  AdminTecnicos,
+  AdminLocales,
+  AdminEstadisticas,
+} from './features/admin';
 
 function Inicio() {
   const { user, loading } = useAuth();
