@@ -4,6 +4,7 @@ import { useFetch } from '../../hooks/useFetch';
 import { useToast } from '../../context/ToastContext';
 import Loading from '../../components/Loading';
 import ErrorBox from '../../components/ErrorBox';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { promedio } from '../../utils';
 import { errorMessage } from '../../services/api';
 import { formFieldSetter } from '../../utils';
@@ -11,6 +12,7 @@ import type { FormEvent } from 'react';
 import type { Tecnico } from '../../types';
 
 const VACIO = { nombre: '', apellido: '', email: '', telefono: '', local_id: '', especialidad: '', limite_consultas: '' };
+type ConfirmableAction = 'activate' | 'deactivate' | 'delete';
 
 export default function AdminTecnicos() {
   const toast = useToast();
@@ -21,6 +23,8 @@ export default function AdminTecnicos() {
   const [passwordTemporal, setPasswordTemporal] = useState('');
   const [creds, setCreds] = useState<{ email: string; password: string } | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [confirmacion, setConfirmacion] = useState<{ tecnico: Tecnico; accion: ConfirmableAction } | null>(null);
+  const [confirmando, setConfirmando] = useState(false);
   const set = formFieldSetter(setForm);
   const localesActivos = (locales.data?.locales || []).filter((l) => l.activo);
 
@@ -40,10 +44,49 @@ export default function AdminTecnicos() {
       cancelar(); await tecnicos.reload(true);
     } catch (error) { toast.error(errorMessage(error)); } finally { setOcupado(false); }
   };
-  const accion = async (fn: () => Promise<unknown>, msg: string, confirmar?: string) => {
-    if (confirmar && !window.confirm(confirmar)) return;
-    try { await fn(); toast.ok(msg); await tecnicos.reload(true); } catch (error) { toast.error(errorMessage(error)); }
+  const ejecutarAccion = async () => {
+    if (!confirmacion || confirmando) return;
+    setConfirmando(true);
+    try {
+      const { tecnico, accion } = confirmacion;
+      if (accion === 'activate') {
+        await adminApi.estadoTecnico(tecnico.id, true);
+        toast.ok('Técnico activado');
+      } else if (accion === 'deactivate') {
+        await adminApi.estadoTecnico(tecnico.id, false);
+        toast.ok('Técnico desactivado');
+      } else {
+        await adminApi.eliminarTecnico(tecnico.id);
+        toast.ok('Técnico eliminado (se conserva su historial)');
+      }
+      setConfirmacion(null);
+      await tecnicos.reload(true);
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setConfirmando(false);
+    }
   };
+  const dialogContent = confirmacion && ({
+    activate: {
+      title: 'Activar técnico',
+      description: `¿Querés volver a activar a ${confirmacion.tecnico.nombre} ${confirmacion.tecnico.apellido}? Podrá ingresar y recibir consultas nuevamente.`,
+      confirmLabel: 'Activar técnico',
+      danger: false,
+    },
+    deactivate: {
+      title: 'Desactivar técnico',
+      description: `¿Querés desactivar a ${confirmacion.tecnico.nombre} ${confirmacion.tecnico.apellido}? Sus consultas activas volverán a la cola para reasignarse.`,
+      confirmLabel: 'Desactivar',
+      danger: false,
+    },
+    delete: {
+      title: 'Eliminar técnico',
+      description: `¿Querés eliminar a ${confirmacion.tecnico.nombre} ${confirmacion.tecnico.apellido}? No podrá ingresar, pero se conservará su historial.`,
+      confirmLabel: 'Eliminar técnico',
+      danger: true,
+    },
+  }[confirmacion.accion]);
   const restablecerPassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editando) return;
@@ -114,15 +157,24 @@ export default function AdminTecnicos() {
                   <td className="actions">{!eliminado && <>
                     <button className="secondary" onClick={() => editar(t)}>Editar</button>
                     {t.activo
-                      ? <button className="secondary" onClick={() => accion(() => adminApi.estadoTecnico(t.id, false), 'Técnico desactivado', 'Sus consultas activas volverán a la cola para reasignarse. ¿Desactivar?')}>Desactivar</button>
-                      : <button className="secondary" onClick={() => accion(() => adminApi.estadoTecnico(t.id, true), 'Técnico activado')}>Activar</button>}
-                    <button className="danger" onClick={() => accion(() => adminApi.eliminarTecnico(t.id), 'Técnico eliminado (se conserva su historial)', 'Eliminación lógica: el técnico no podrá ingresar pero su historial se conserva. ¿Continuar?')}>Eliminar</button>
+                      ? <button className="secondary" onClick={() => setConfirmacion({ tecnico: t, accion: 'deactivate' })}>Desactivar</button>
+                      : <button className="secondary" onClick={() => setConfirmacion({ tecnico: t, accion: 'activate' })}>Activar</button>}
+                    <button className="danger" onClick={() => setConfirmacion({ tecnico: t, accion: 'delete' })}>Eliminar</button>
                   </>}</td>
                 </tr>
               );
             })}
           </tbody>
         </table></div>
+      )}
+      {dialogContent && (
+        <ConfirmDialog
+          open={!!confirmacion}
+          {...dialogContent}
+          busy={confirmando}
+          onCancel={() => setConfirmacion(null)}
+          onConfirm={ejecutarAccion}
+        />
       )}
     </>
   );
