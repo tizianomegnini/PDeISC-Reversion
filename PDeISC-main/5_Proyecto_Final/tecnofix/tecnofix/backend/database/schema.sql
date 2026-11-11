@@ -111,6 +111,21 @@ CREATE TABLE IF NOT EXISTS mensajes (
   CONSTRAINT fk_mensajes_autor FOREIGN KEY (autor_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Vistas de lectura para consultar los mensajes separados por rol sin duplicar registros.
+CREATE OR REPLACE VIEW mensajes_clientes AS
+SELECT m.id, m.consulta_id, m.autor_id, u.nombre AS autor_nombre, u.apellido AS autor_apellido,
+       u.rol AS autor_rol, m.contenido, m.created_at
+  FROM mensajes m
+  JOIN usuarios u ON u.id = m.autor_id
+ WHERE u.rol = 'cliente';
+
+CREATE OR REPLACE VIEW mensajes_tecnicos AS
+SELECT m.id, m.consulta_id, m.autor_id, u.nombre AS autor_nombre, u.apellido AS autor_apellido,
+       u.rol AS autor_rol, m.contenido, m.created_at
+  FROM mensajes m
+  JOIN usuarios u ON u.id = m.autor_id
+ WHERE u.rol = 'tecnico';
+
 -- UNIQUE(consulta_id): una consulta se califica una sola vez, garantizado por la base.
 CREATE TABLE IF NOT EXISTS valoraciones (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,

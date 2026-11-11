@@ -1,6 +1,7 @@
 import './env-test.js';
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { pool } from '../src/config/db.js';
 import { resetDb, closeDb, registrarCliente, crearTecnico, crearAdmin, login, api, crearConsulta, consultaBody } from './helpers.js';
 
 let cli, otro, tec, tecTok, admTok, c;
@@ -29,6 +30,19 @@ test('mensajes entre cliente y técnico; la respuesta del cliente reactiva "espe
   const m = (await api(cli.token).get(`/consultas/${c.id}/mensajes`)).body.mensajes;
   assert.deepEqual(m.map((x) => x.autor_rol), ['tecnico', 'cliente']);
   assert.equal((await api(cli.token).get(`/consultas/${c.id}`)).body.consulta.estado, 'en_proceso');
+
+  const [mensajesCliente] = await pool.execute(
+    'SELECT id, contenido, autor_rol FROM mensajes_clientes WHERE consulta_id = ? ORDER BY id',
+    [c.id],
+  );
+  const [mensajesTecnico] = await pool.execute(
+    'SELECT id, contenido, autor_rol FROM mensajes_tecnicos WHERE consulta_id = ? ORDER BY id',
+    [c.id],
+  );
+  assert.deepEqual(mensajesCliente.map((mensaje) => [mensaje.contenido, mensaje.autor_rol]), [['Sí, sigue igual.', 'cliente']]);
+  assert.deepEqual(mensajesTecnico.map((mensaje) => [mensaje.contenido, mensaje.autor_rol]), [['¿Probó con otro cargador?', 'tecnico']]);
+  const [totalEnTabla] = await pool.execute('SELECT COUNT(*) AS total FROM mensajes WHERE consulta_id = ?', [c.id]);
+  assert.equal(mensajesCliente.length + mensajesTecnico.length, Number(totalEnTabla[0].total));
 });
 
 test('no se puede calificar una consulta que no está finalizada', async () => {

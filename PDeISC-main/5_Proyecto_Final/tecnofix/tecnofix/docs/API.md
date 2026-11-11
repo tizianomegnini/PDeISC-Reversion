@@ -27,6 +27,8 @@ Errores: `{ "error": "mensaje", "detalles": [{ "campo", "mensaje" }] }` con cód
 | POST | `/consultas/:id/mensajes` | cliente / técnico | `{contenido}`; no si está cerrada |
 | POST | `/consultas/:id/valoracion` | cliente dueño | `{estrellas: 1-5, comentario?}`; solo `finalizada`, una vez |
 
+Los mensajes se guardan una sola vez en `mensajes`. Las vistas de base de datos `mensajes_clientes` y `mensajes_tecnicos` permiten consultarlos separados por el rol del autor, sin duplicar información.
+
 ## Técnico
 | GET | `/tecnico/resumen` | técnico | Promedio, valoraciones, trabajos atendidos, activas, límite |
 
