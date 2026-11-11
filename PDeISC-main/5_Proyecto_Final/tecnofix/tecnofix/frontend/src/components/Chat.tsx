@@ -7,7 +7,13 @@ import { errorMessage } from '../services/api';
 import type { FormEvent } from 'react';
 import type { Mensaje } from '../types';
 
-/** Mensajes de una consulta. Se actualiza solo cada 8 segundos (sondeo simple, sin websockets). */
+/**
+ * Panel de conversación entre cliente y técnico asociado a una consulta.
+ *
+ * @param consultaId Identificador del caso cuyo hilo se muestra.
+ * @param cerrada Indica si la consulta ya no acepta mensajes.
+ * @param onSent Callback para recargar la vista cuando se envía un mensaje.
+ */
 export default function Chat({ consultaId, cerrada, onSent }: { consultaId: number; cerrada: boolean; onSent?: () => void }) {
   const { user } = useAuth();
   const toast = useToast();

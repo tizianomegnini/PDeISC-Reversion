@@ -1,3 +1,4 @@
+/** Error HTTP controlado: el middleware global serializa estado, mensaje y detalles. */
 export class HttpError extends Error {
   constructor(status, message, details) {
     super(message);

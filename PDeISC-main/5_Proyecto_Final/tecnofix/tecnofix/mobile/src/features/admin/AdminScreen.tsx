@@ -60,6 +60,9 @@ function QuickAction({ icon, title, subtitle, onPress }: {
   );
 }
 
+/**
+ * Resumen operativo del panel de administración con métricas, pendientes y accesos rápidos.
+ */
 function Summary({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
   const [data, setData] = useState<AdminSummary | null>(null);
   const [error, setError] = useState('');
@@ -148,6 +151,9 @@ function Summary({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
   </>;
 }
 
+/**
+ * Lista de consultas pendientes de asignación con la acción de reasignación automática.
+ */
 function Pending({ onOpen }: { onOpen: (id: number) => void }) {
   const [items, setItems] = useState<Consultation[] | null>(null);
   const [error, setError] = useState('');
@@ -181,6 +187,9 @@ function Pending({ onOpen }: { onOpen: (id: number) => void }) {
   </>;
 }
 
+/**
+ * Gestión de profesionales: alta, edición, activación, desactivación y eliminación.
+ */
 function Technicians() {
   const [items, setItems] = useState<Technician[] | null>(null);
   const [locales, setLocales] = useState<Location[]>([]);
@@ -342,6 +351,9 @@ function Technicians() {
   </>;
 }
 
+/**
+ * Gestión de locales, actualización de dirección y activación/desactivación de sucursales.
+ */
 function Locations() {
   const [items, setItems] = useState<Location[] | null>(null);
   const [creating, setCreating] = useState(false);
@@ -425,6 +437,9 @@ function Locations() {
   </>;
 }
 
+/**
+ * Panel de métricas y comparativas de locales y técnicos con valoraciones de servicio.
+ */
 function Statistics() {
   const [data, setData] = useState<StatisticsResponse | null>(null);
   const [summary, setSummary] = useState<AdminSummary | null>(null);
@@ -461,6 +476,9 @@ function Statistics() {
   </>;
 }
 
+/**
+ * Listado público de valoraciones recibidas por la plataforma para revisión administrativa.
+ */
 function Reviews() {
   const [items, setItems] = useState<Review[] | null>(null);
   const [error, setError] = useState('');
@@ -471,6 +489,9 @@ function Reviews() {
   return items.map((item) => <Card key={item.id}><Text style={styles.itemTitle}>{'★'.repeat(item.estrellas)} · Consulta #{item.consulta_id}</Text><Text style={styles.muted}>Cliente: {item.cliente_nombre} {item.cliente_apellido} · Técnico: {item.tecnico_nombre} {item.tecnico_apellido} · {item.local_nombre}</Text><Text style={styles.muted}>{item.comentario || 'Sin comentario'}</Text><Text style={styles.itemMeta}>{formatDate(item.created_at)}</Text></Card>);
 }
 
+/**
+ * Ajuste del límite global de consultas activas por defecto para nuevos técnicos.
+ */
 function Configuration() {
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
@@ -487,6 +508,9 @@ function Configuration() {
   return <Card><Heading title="Límite por defecto" subtitle="Máximo de consultas activas para los técnicos nuevos." /><Field label="Consultas" value={value} onChangeText={setValue} keyboardType="number-pad" />{!!error && <Message>{error}</Message>}{!!success && <Message type="success">{success}</Message>}<Button title="Guardar" onPress={save} /></Card>;
 }
 
+/**
+ * Vista principal del administrador con tabs para resumen, pendientes, técnicos, locales y estadísticas.
+ */
 export default function AdminScreen({ onOpenConsultation }: { onOpenConsultation: (id: number) => void }) {
   const [tab, setTab] = useState<AdminTab>('resumen');
   return <MotionScrollView contentContainerStyle={styles.content}>

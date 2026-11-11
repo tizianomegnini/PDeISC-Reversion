@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { badRequest } from './errors.js';
 
+/** Valida y normaliza una entrada Zod; convierte los errores en un 400 legible por campo. */
 export function parse(schema, data) {
   const r = schema.safeParse(data);
   if (!r.success) {
@@ -10,9 +11,11 @@ export function parse(schema, data) {
   return r.data;
 }
 
+/** Construye una regla para textos obligatorios con límites y mensajes en español. */
 const texto = (min, max, nombre) =>
   z.string({ required_error: `${nombre} es obligatorio`, invalid_type_error: `${nombre} debe ser texto` })
     .trim().min(min, `${nombre} es obligatorio`).max(max, `${nombre} admite hasta ${max} caracteres`);
+/** Normaliza datos opcionales del equipo y completa los vacíos con un valor de presentación. */
 const equipoOpcional = (max) =>
   z.string({ invalid_type_error: 'El dato del equipo debe ser texto' })
     .trim().max(max).optional().transform((v) => v || 'No identificado');
@@ -71,6 +74,7 @@ export const schemas = {
   config: z.object({ limite_consultas_default: z.number().int().min(1).max(1000) }),
 };
 
+/** Convierte un parámetro de ruta a entero positivo o responde con error 400. */
 export const idParam = (v) => {
   const n = Number(v);
   if (!Number.isInteger(n) || n <= 0) throw badRequest('Identificador inválido');

@@ -1,3 +1,6 @@
+/**
+ * Tipos de usuario que definen la navegación, permisos y capturas de pantalla del app.
+ */
 export type UserRole = 'cliente' | 'tecnico' | 'admin';
 export type ThemeMode = 'light' | 'dark';
 export type ConsultationStatus =
@@ -164,6 +167,9 @@ export interface Review {
   created_at: string;
 }
 
+/**
+ * Normaliza errores de red o del backend a un mensaje legible para la UI.
+ */
 export function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Ocurrió un error inesperado.';
 }

@@ -13,6 +13,9 @@ interface DonutSegment {
   color: string;
 }
 
+/**
+ * Arma el donut que resume la distribución de consultas por estado en el panel estadístico.
+ */
 function ConsultationDonut({ summary }: { summary: ResumenAdmin['resumen'] }) {
   const totalConsultations = summary.consultas_total ?? 0;
   const pending = summary.pendientes ?? 0;
@@ -82,6 +85,9 @@ interface WorkloadRow {
   completed: number;
 }
 
+/**
+ * Barras comparativas de actividad por local o técnico; destacan carga activa versus atendida.
+ */
 function WorkloadBars({ rows, emptyMessage }: { rows: WorkloadRow[]; emptyMessage: string }) {
   const max = Math.max(1, ...rows.map((row) => row.active + row.completed));
 
@@ -118,6 +124,9 @@ function WorkloadBars({ rows, emptyMessage }: { rows: WorkloadRow[]; emptyMessag
   );
 }
 
+/**
+ * Distribución de valoraciones por cantidad de estrellas para resumir la experiencia del servicio.
+ */
 function RatingBars({ ratings }: { ratings: Valoracion[] }) {
   const counts = [1, 2, 3, 4, 5].map((stars) => ratings.filter((rating) => rating.estrellas === stars).length);
   const max = Math.max(1, ...counts);
@@ -139,6 +148,13 @@ function RatingBars({ ratings }: { ratings: Valoracion[] }) {
   );
 }
 
+/**
+ * Compone los gráficos del panel administrativo con estado, carga operativa y valoración.
+ *
+ * @param summary Metrica global del backend por estado de consulta.
+ * @param statistics Datos agregados de locales y técnicos para comparar trabajo.
+ * @param ratings Valoraciones recientes que alimentan el gráfico de distribución.
+ */
 export default function StatisticsCharts({
   summary,
   statistics,

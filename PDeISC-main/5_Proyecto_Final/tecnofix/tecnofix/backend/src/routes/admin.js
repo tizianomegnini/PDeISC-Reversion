@@ -10,17 +10,21 @@ import { asignarConsulta, reintentarPendientes, limiteDefault } from '../service
 import { SELECT_CONSULTA } from '../services/consultas.js';
 import { listarTecnicosConStats, statsLocales, resumenAdmin } from '../services/stats.js';
 
+/** Operaciones de administración; todas requieren una sesión válida con rol admin. */
 const router = Router();
 router.use(authenticate(), requireRole('admin'));
 
 const passwordTemporal = () => crypto.randomBytes(9).toString('base64url') + 'a1';
 
+/** Devuelve indicadores globales y estadísticas desglosadas del sistema. */
 router.get('/resumen', ah(async (_req, res) => res.json({ resumen: await resumenAdmin() })));
 router.get('/estadisticas', ah(async (_req, res) => res.json({ tecnicos: await listarTecnicosConStats(), locales: await statsLocales() })));
 
 // ---------- Técnicos ----------
+/** Lista el personal técnico con capacidad, disponibilidad y métricas de valoración. */
 router.get('/tecnicos', ah(async (_req, res) => res.json({ tecnicos: await listarTecnicosConStats() })));
 
+/** Crea usuario y perfil técnico atómicamente; asigna pendientes tras confirmar el alta. */
 router.post('/tecnicos', ah(async (req, res) => {
   const d = parse(schemas.tecnicoCrear, req.body);
   const [loc] = await pool.execute('SELECT id FROM locales WHERE id=? AND activo=1', [d.local_id]);
@@ -46,6 +50,7 @@ router.post('/tecnicos', ah(async (req, res) => {
   res.status(201).json({ id: out, password_temporal: temporal });
 }));
 
+/** Actualiza solo los campos enviados y libera carga si se deshabilita al técnico. */
 router.put('/tecnicos/:id', ah(async (req, res) => {
   const id = idParam(req.params.id);
   const d = parse(schemas.tecnicoEditar, req.body);
@@ -67,6 +72,7 @@ router.put('/tecnicos/:id', ah(async (req, res) => {
   res.json({ ok: true });
 }));
 
+/** Restablece la contraseña e impone su cambio en el próximo inicio de sesión. */
 router.put('/tecnicos/:id/password', ah(async (req, res) => {
   const id = idParam(req.params.id);
   const { password } = parse(schemas.tecnicoPassword, req.body);
@@ -87,11 +93,13 @@ router.put('/tecnicos/:id/password', ah(async (req, res) => {
 }));
 
 // Si un técnico deja de estar disponible, sus consultas activas vuelven a "pendiente" para reasignarse.
+/** Devuelve al estado pendiente las consultas activas del técnico dentro de la transacción actual. */
 async function liberarConsultas(conn, tecnicoId) {
   await conn.execute(
     "UPDATE consultas SET estado='pendiente', tecnico_id=NULL, asignada_at=NULL WHERE tecnico_id=? AND estado IN ('asignada','en_proceso','esperando_cliente')", [tecnicoId]);
 }
 
+/** Activa o desactiva la cuenta y devuelve sus consultas activas al flujo de asignación. */
 router.post('/tecnicos/:id/estado', ah(async (req, res) => {
   const id = idParam(req.params.id);
   const activo = req.body?.activo;
@@ -123,8 +131,10 @@ router.delete('/tecnicos/:id', ah(async (req, res) => {
 }));
 
 // ---------- Locales ----------
+/** Lista sucursales con sus indicadores de actividad y atención. */
 router.get('/locales', ah(async (_req, res) => res.json({ locales: await statsLocales() })));
 
+/** Crea una sucursal y registra la acción administrativa en auditoría. */
 router.post('/locales', ah(async (req, res) => {
   const d = parse(schemas.local, req.body);
   try {
@@ -134,6 +144,7 @@ router.post('/locales', ah(async (req, res) => {
   } catch (e) { if (e.code === 'ER_DUP_ENTRY') throw conflict('Ya existe un local con ese nombre'); throw e; }
 }));
 
+/** Actualiza datos de sucursal; el estado activo solo cambia si se envía explícitamente. */
 router.put('/locales/:id', ah(async (req, res) => {
   const id = idParam(req.params.id);
   const d = parse(schemas.local, req.body);
@@ -156,11 +167,14 @@ router.delete('/locales/:id', ah(async (req, res) => {
 }));
 
 // ---------- Consultas pendientes / asignación ----------
+/** Muestra consultas aún no asignadas en orden de antigüedad. */
 router.get('/consultas/pendientes', ah(async (_req, res) => {
   const [rows] = await pool.execute(`${SELECT_CONSULTA} WHERE c.estado='pendiente' ORDER BY c.id`);
   res.json({ consultas: rows });
 }));
+/** Reprocesa la cola pendiente hasta que no quede capacidad disponible. */
 router.post('/consultas/reintentar', ah(async (req, res) => res.json(await reintentarPendientes(req.user.id))));
+/** Solicita asignación manual de una consulta pendiente y reporta el técnico elegido. */
 router.post('/consultas/:id/asignar', ah(async (req, res) => {
   const id = idParam(req.params.id);
   const [c] = await pool.execute('SELECT estado FROM consultas WHERE id=?', [id]);
@@ -171,6 +185,7 @@ router.post('/consultas/:id/asignar', ah(async (req, res) => {
 }));
 
 // ---------- Valoraciones ----------
+/** Lista las valoraciones recientes con los nombres de las partes y su sucursal. */
 router.get('/valoraciones', ah(async (_req, res) => {
   const [rows] = await pool.execute(
     `SELECT v.id, v.consulta_id, v.estrellas, v.comentario, v.created_at, cu.nombre AS cliente_nombre, cu.apellido AS cliente_apellido,
@@ -181,13 +196,16 @@ router.get('/valoraciones', ah(async (_req, res) => {
 }));
 
 // ---------- Configuración y auditoría ----------
+/** Consulta el límite que se usa al crear técnicos sin límite explícito. */
 router.get('/configuracion', ah(async (_req, res) => res.json({ limite_consultas_default: await limiteDefault() })));
+/** Actualiza el límite predeterminado y registra el cambio en auditoría. */
 router.put('/configuracion', ah(async (req, res) => {
   const d = parse(schemas.config, req.body);
   await pool.execute("UPDATE configuracion SET valor=? WHERE clave='limite_consultas_default'", [String(d.limite_consultas_default)]);
   await audit(null, req.user.id, 'configuracion.editada', 'configuracion', null, d);
   res.json({ limite_consultas_default: d.limite_consultas_default });
 }));
+/** Expone las últimas acciones con el detalle JSON ya normalizado. */
 router.get('/auditoria', ah(async (_req, res) => {
   const [rows] = await pool.execute(
     `SELECT a.id, a.usuario_id, u.email AS usuario_email, a.accion, a.entidad, a.entidad_id, a.detalle, a.created_at

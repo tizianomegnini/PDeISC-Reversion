@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import { app, API, PASSWORD, resetDb, closeDb, registrarCliente, crearTecnico, login, api } from './helpers.js';
 import { pool } from '../src/config/db.js';
 
+// Pruebas de registro, sesión, cookies, permisos de cambio de contraseña y OAuth social.
 before(resetDb);
 after(closeDb);
 

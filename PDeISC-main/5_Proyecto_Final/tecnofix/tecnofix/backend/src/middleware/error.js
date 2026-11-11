@@ -1,10 +1,12 @@
 import { HttpError } from '../utils/errors.js';
 import { env } from '../config/env.js';
 
+/** Responde de forma uniforme cuando ninguna ruta coincide con la petición. */
 export function notFoundHandler(_req, res) {
   res.status(404).json({ error: 'Ruta no encontrada' });
 }
 
+/** Traduce errores de aplicación, parseo y MySQL a respuestas HTTP seguras. */
 // eslint-disable-next-line no-unused-vars
 export function errorHandler(err, _req, res, _next) {
   if (err instanceof HttpError) return res.status(err.status).json({ error: err.message, detalles: err.details });

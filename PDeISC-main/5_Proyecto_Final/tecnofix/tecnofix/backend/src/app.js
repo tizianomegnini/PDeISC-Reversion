@@ -10,6 +10,7 @@ import tecnicoRoutes from './routes/tecnico.js';
 import adminRoutes from './routes/admin.js';
 import notificacionesRoutes from './routes/notificaciones.js';
 
+/** Ensambla los middlewares y rutas; no abre puertos para facilitar pruebas con Supertest. */
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');

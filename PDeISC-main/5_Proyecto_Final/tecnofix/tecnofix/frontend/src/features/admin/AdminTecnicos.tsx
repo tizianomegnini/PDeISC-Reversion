@@ -14,6 +14,9 @@ import type { Tecnico } from '../../types';
 const VACIO = { nombre: '', apellido: '', email: '', telefono: '', local_id: '', especialidad: '', limite_consultas: '' };
 type ConfirmableAction = 'activate' | 'deactivate' | 'delete';
 
+/**
+ * Administración completa del personal técnico: creación, edición, activación, eliminación y restablecimiento de credenciales.
+ */
 export default function AdminTecnicos() {
   const toast = useToast();
   const tecnicos = useFetch(() => adminApi.tecnicos());

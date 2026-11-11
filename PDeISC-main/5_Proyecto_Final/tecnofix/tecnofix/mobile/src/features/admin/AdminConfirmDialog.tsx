@@ -39,6 +39,10 @@ interface AdminConfirmDialogProps {
   onConfirm: () => void;
 }
 
+/**
+ * Modal de confirmación para activar, desactivar o eliminar un técnico.
+ * Evita acciones destructivas sin pasar por una confirmación explícita del administrador.
+ */
 export default function AdminConfirmDialog({
   technician,
   action,

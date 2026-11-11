@@ -7,7 +7,11 @@ import { env } from '../src/config/env.js';
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const SCHEMA_PATH = path.join(here, '..', 'database', 'schema.sql');
 
-/** Crea la base (si no existe) y aplica schema.sql. Con drop=true la borra antes. */
+/**
+ * Crea la base (si no existe) y aplica schema.sql.
+ * @param {{ drop?: boolean }} options Si drop es true, elimina la base configurada antes de crearla.
+ * @returns {Promise<string>} Nombre de la base inicializada.
+ */
 export async function initDatabase({ drop = false } = {}) {
   const { host, port, user, password, database } = env.db;
   const conn = await mysql.createConnection({ host, port, user, password, multipleStatements: true, charset: 'utf8mb4' });

@@ -1,6 +1,7 @@
 import { initDatabase } from './lib.js';
 import { env } from '../src/config/env.js';
 
+// CLI de inicialización: --drop recrea la base y está bloqueado explícitamente en producción.
 const drop = process.argv.includes('--drop');
 if (drop && env.nodeEnv === 'production') { console.error('db:reset no está permitido en producción'); process.exit(1); }
 try {

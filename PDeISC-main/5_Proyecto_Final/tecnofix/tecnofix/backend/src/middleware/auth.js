@@ -7,6 +7,7 @@ import { verifyToken, COOKIE_NAME } from '../utils/tokens.js';
  *  - token por header Authorization: Bearer (apps móviles / pruebas) o cookie httpOnly (web)
  *  - recarga al usuario desde MySQL: si fue desactivado/eliminado, el token deja de servir
  *  - con cookie, las peticiones que modifican datos exigen el header X-Requested-With (defensa CSRF)
+ * Adjunta a req.user la fila vigente del usuario y su tecnico_id, si corresponde.
  */
 export const authenticate = ({ allowPasswordChange = false } = {}) =>
   ah(async (req, _res, next) => {
@@ -40,5 +41,6 @@ export const authenticate = ({ allowPasswordChange = false } = {}) =>
     next();
   });
 
+/** Autoriza los roles indicados; requiere que authenticate haya cargado req.user. */
 export const requireRole = (...roles) => (req, _res, next) =>
   roles.includes(req.user?.rol) ? next() : next(forbidden());

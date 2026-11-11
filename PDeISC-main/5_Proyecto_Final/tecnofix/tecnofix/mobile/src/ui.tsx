@@ -90,12 +90,19 @@ const palettes: Record<ThemeMode, Palette> = {
   },
 };
 
+/**
+ * Colección de estilos, tema visual y utilidades compartidas por todas las pantallas.
+ * El estado del tema se persiste en SecureStore y se expondrá a la app entera.
+ */
 const THEME_STORAGE_KEY = 'tecnofix-color-theme';
 let activeTheme: ThemeMode = 'light';
 export let colors = palettes[activeTheme];
 type StyleMap = Record<string, ViewStyle | TextStyle>;
 let themedStyles: StyleMap = {};
 
+/**
+ * Cambia el tema activo y recompone el mapa de estilos estáticos para la próxima render.
+ */
 export function setThemeMode(mode: 'light' | 'dark'): 'light' | 'dark' {
   activeTheme = mode;
   colors = palettes[activeTheme];
@@ -103,15 +110,24 @@ export function setThemeMode(mode: 'light' | 'dark'): 'light' | 'dark' {
   return activeTheme;
 }
 
+/**
+ * Devuelve el tema actual en memoria sin leer storage.
+ */
 export function getThemeMode(): 'light' | 'dark' {
   return activeTheme;
 }
 
+/**
+ * Recupera la preferencia de tema guardada por el usuario para mantener la continuidad visual.
+ */
 export async function restoreThemeMode(): Promise<'light' | 'dark'> {
   const savedTheme = await SecureStore.getItemAsync(THEME_STORAGE_KEY);
   return savedTheme === 'dark' ? 'dark' : 'light';
 }
 
+/**
+ * Persiste la preferencia visual para la próxima apertura de la app.
+ */
 export async function saveThemeMode(mode: 'light' | 'dark'): Promise<void> {
   await SecureStore.setItemAsync(THEME_STORAGE_KEY, mode);
 }
@@ -129,6 +145,10 @@ interface KeyboardScrollMethods {
 
 const KeyboardScrollContext = React.createContext<KeyboardScrollMethods | null>(null);
 
+/**
+ * Scroll animado que ajusta el padding del teclado y aplica un pequeño efecto visual al header.
+ * Se usa para evitar que los inputs queden ocultos al abrir el teclado.
+ */
 export const MotionScrollView = React.forwardRef(function MotionScrollView(
   { children, contentContainerStyle, onScroll, scrollEventThrottle = 16, ...props }: ScrollViewProps & { children?: React.ReactNode },
   ref: React.ForwardedRef<React.ComponentRef<typeof Animated.ScrollView>>,
@@ -217,10 +237,16 @@ export const MotionScrollView = React.forwardRef(function MotionScrollView(
   );
 });
 
+/**
+ * Expone los callbacks necesarios para que los inputs avisen al contenedor scroll cuando ganan foco.
+ */
 export function useKeyboardScroll(): KeyboardScrollMethods | null {
   return React.useContext(KeyboardScrollContext);
 }
 
+/**
+ * Logo institucional renderizado a un tamaño configurable para el header y la pantalla de login.
+ */
 export function BrandMark({ size = 44 }: { size?: number }) {
   return <Image source={require('../assets/tecnofix-mark.png')} style={{ width: size, height: size }} resizeMode="contain" />;
 }
@@ -233,6 +259,9 @@ interface ButtonProps {
   small?: boolean;
 }
 
+/**
+ * Botón reutilizable con variantes primaria/secundaria/acción destructiva para toda la app.
+ */
 export function Button({ title, onPress, variant = 'primary', disabled = false, small = false }: ButtonProps) {
   return (
     <Pressable

@@ -7,6 +7,10 @@ import { authApi, errorMessage } from '../../services/api';
 import { formFieldSetter } from '../../utils';
 import type { FormEvent } from 'react';
 
+/**
+ * Pantalla de ingreso con login local y proveedores OAuth opcionales.
+ * Redirige a la ruta según el usuario y sus condiciones de seguridad.
+ */
 export default function Login() {
   const { user, login } = useAuth();
   const toast = useToast();

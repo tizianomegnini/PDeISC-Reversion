@@ -6,6 +6,9 @@ import { getErrorMessage, type Consultation, type ConsultationForm, type Technic
 
 const EQUIPMENT = ['Celular', 'Notebook', 'PC de escritorio', 'Tablet', 'Consola', 'Impresora', 'Otro'];
 
+/**
+ * Resumen compacto de una consulta para la lista principal.
+ */
 function ConsultationItem({ item, onPress }: { item: Consultation; onPress: () => void }) {
   return (
     <Pressable onPress={onPress}>
@@ -22,6 +25,9 @@ function ConsultationItem({ item, onPress }: { item: Consultation; onPress: () =
   );
 }
 
+/**
+ * Formulario de alta de consulta reutilizado en la vista de creación desde la home.
+ */
 function NewConsultation({ onBack, onCreated }: { onBack: () => void; onCreated: (consultation: Consultation) => void }) {
   const [form, setForm] = useState<ConsultationForm>({ tipo_equipo: '', marca: '', modelo: '', descripcion: '' });
   const [busy, setBusy] = useState(false);
@@ -65,6 +71,10 @@ interface HomeScreenProps {
   onNavigate: (screen: 'detail', id: number) => void;
 }
 
+/**
+ * Listado principal de consultas según el rol del usuario.
+ * Para técnicos muestra el panel con turnos asignados; para clientes, permite crear y consultar casos.
+ */
 export default function HomeScreen({ user, onNavigate }: HomeScreenProps) {
   const [view, setView] = useState<'list' | 'new'>('list');
   const [data, setData] = useState<Consultation[] | null>(null);

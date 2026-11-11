@@ -5,6 +5,9 @@ import Loading from '../../components/Loading';
 import ErrorBox from '../../components/ErrorBox';
 import ConsultasTable from '../../components/ConsultasTable';
 
+/**
+ * Dashboard del cliente con resumen de consultas, estado activo y acceso rápido a crear una nueva.
+ */
 export default function MisConsultas() {
   const { data, error, loading, reload } = useFetch(() => consultasApi.list());
   const consultas = data?.consultas || [];

@@ -2,6 +2,7 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { pool } from './config/db.js';
 
+// Punto de entrada: comprueba MySQL antes de aceptar tráfico y luego inicia el servidor HTTP.
 try {
   await pool.query('SELECT 1');
 } catch (e) {

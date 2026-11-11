@@ -11,8 +11,10 @@ const IN_ACTIVOS = ESTADOS_ACTIVOS.map((e) => `'${e}'`).join(',');
  */
 export const PRIOR_MEDIA = 4;
 export const PRIOR_PESO = 5;
+/** Calcula el promedio bayesiano usado para ordenar técnicos por valoración. */
 export const puntaje = (suma, cant) => (Number(suma) + PRIOR_MEDIA * PRIOR_PESO) / (Number(cant) + PRIOR_PESO);
 
+/** Lee el límite predeterminado de consultas o usa 20 si falta la configuración. */
 export async function limiteDefault(conn = pool) {
   const [r] = await conn.execute("SELECT valor FROM configuracion WHERE clave='limite_consultas_default'");
   return r[0] ? Number(r[0].valor) : 20;
@@ -22,7 +24,10 @@ export async function limiteDefault(conn = pool) {
  * Asigna UNA consulta pendiente. Debe ejecutarse dentro de una transacción.
  * Bloquea (SELECT ... FOR UPDATE) las filas de los técnicos candidatos, siempre en orden de id,
  * de modo que dos asignaciones simultáneas se serializan y nunca superan el límite.
- * Devuelve el id del técnico asignado o null si nadie tiene cupo.
+ * @param {import('mysql2/promise').PoolConnection} conn Conexión transaccional del llamador.
+ * @param {number} consultaId Identificador de la consulta pendiente.
+ * @param {number|null} actorId Usuario que origina la asignación para auditoría.
+ * @returns {Promise<number|null>} Técnico asignado o null si la consulta no está pendiente/no hay cupo.
  */
 export async function asignarEnConexion(conn, consultaId, actorId = null) {
   const [cons] = await conn.execute('SELECT id, estado FROM consultas WHERE id = ? FOR UPDATE', [consultaId]);
@@ -56,6 +61,7 @@ export async function asignarEnConexion(conn, consultaId, actorId = null) {
   return elegido.id;
 }
 
+/** Asigna con transacción y notifica a ambas partes después del commit. */
 export async function asignarConsulta(consultaId, actorId = null) {
   const tecnicoId = await withTransaction((conn) => asignarEnConexion(conn, consultaId, actorId));
   if (tecnicoId) {
@@ -83,7 +89,11 @@ export async function asignarConsulta(consultaId, actorId = null) {
   return tecnicoId;
 }
 
-/** Reintenta asignar las pendientes (más antiguas primero). Corta al primer fallo: si no hay cupo para una, no hay para ninguna. */
+/**
+ * Reintenta asignar las pendientes (más antiguas primero). Corta al primer fallo: si no hay cupo para una, no hay para ninguna.
+ * @param {number|null} actorId Usuario que solicita el reproceso y queda en auditoría.
+ * @returns {Promise<{ pendientes: number, asignadas: number }>} Conteos del lote procesado.
+ */
 export async function reintentarPendientes(actorId = null) {
   const [pend] = await pool.execute("SELECT id FROM consultas WHERE estado = 'pendiente' ORDER BY id");
   let asignadas = 0;

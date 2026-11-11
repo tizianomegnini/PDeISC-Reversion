@@ -145,6 +145,9 @@ function RatingChart({ reviews }: { reviews: Review[] }) {
   );
 }
 
+/**
+ * Agrupa métricas y gráficos del panel administrativo para resumir actividad, workload y valoraciones.
+ */
 export default function AdminCharts({
   summary,
   statistics,

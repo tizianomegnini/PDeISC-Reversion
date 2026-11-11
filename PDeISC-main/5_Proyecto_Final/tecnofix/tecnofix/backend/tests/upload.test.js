@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { parseAdjuntos } from '../src/middleware/upload.js';
 
+// Prueba el parser multipart con imágenes válidas, formatos prohibidos y límites de carga.
 function parte(boundary, headers, contenido) {
   return Buffer.concat([
     Buffer.from(`--${boundary}\r\n${headers}\r\n\r\n`),
@@ -11,6 +12,7 @@ function parte(boundary, headers, contenido) {
   ]);
 }
 
+/** Emite una petición simulada para probar el middleware sin abrir un servidor HTTP. */
 function parsear(body, boundary) {
   return new Promise((resolve, reject) => {
     const req = new EventEmitter();

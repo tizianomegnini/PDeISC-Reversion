@@ -3,6 +3,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { resetDb, closeDb, registrarCliente, crearTecnico, crearAdmin, login, api, crearConsulta, consultaBody, PASSWORD } from './helpers.js';
 
+// Verifica aislamiento por propiedad y rol en rutas protegidas, además de acciones administrativas.
 let cli1, cli2, tecA, tecB, tokA, tokB, admTok, consulta;
 
 before(async () => {

@@ -7,6 +7,9 @@ import { homePorRol } from '../../components/ProtectedRoute';
 import { formFieldSetter } from '../../utils';
 import type { FormEvent } from 'react';
 
+/**
+ * Permite actualizar la contraseña cuando la sesión requiere un cambio forzado.
+ */
 export default function ChangePassword() {
   const { user, setUser } = useAuth();
   const toast = useToast();

@@ -7,6 +7,7 @@ import { asignarEnConexion, reintentarPendientes } from '../services/assignment.
 import { SELECT_CONSULTA, consultaAutorizada, TRANSICIONES } from '../services/consultas.js';
 import { notifyTechnician, notifyUser } from '../services/push.js';
 
+/** Endpoints del ciclo de vida de consultas, accesibles según propiedad y rol. */
 const router = Router();
 router.use(authenticate());
 const ESTADO_LABELS = {
@@ -19,6 +20,7 @@ const ESTADO_LABELS = {
 };
 
 // Listado según el rol: cada uno ve solo lo suyo (el admin ve todo, con filtro opcional ?estado=)
+/** Lista consultas propias (o todas para administración), con filtro opcional de estado. */
 router.get('/', ah(async (req, res) => {
   const { estado } = req.query;
   const where = []; const params = [];
@@ -32,6 +34,7 @@ router.get('/', ah(async (req, res) => {
   res.json({ consultas: rows });
 }));
 
+/** Crea una consulta y prueba asignarla dentro de la misma transacción; notifica tras confirmar. */
 router.post('/', requireRole('cliente'), ah(async (req, res) => {
   const d = parse(schemas.consulta, req.body);
   // Crear + intentar asignar en UNA transacción: o queda todo guardado o nada.
@@ -61,10 +64,12 @@ router.post('/', requireRole('cliente'), ah(async (req, res) => {
   res.status(201).json({ consulta });
 }));
 
+/** Devuelve una consulta solo si el usuario autenticado está autorizado a verla. */
 router.get('/:id', ah(async (req, res) => {
   res.json({ consulta: await consultaAutorizada(req.user, idParam(req.params.id)) });
 }));
 
+/** Aplica una transición permitida con bloqueo de fila y reintenta pendientes al liberar cupo. */
 router.patch('/:id/estado', requireRole('tecnico', 'cliente'), ah(async (req, res) => {
   const id = idParam(req.params.id);
   const { estado: nuevo } = parse(schemas.estado, req.body);
@@ -97,6 +102,7 @@ router.patch('/:id/estado', requireRole('tecnico', 'cliente'), ah(async (req, re
   res.json({ consulta: await consultaAutorizada(req.user, id) });
 }));
 
+/** Lista los mensajes de una consulta después de comprobar el acceso a ella. */
 router.get('/:id/mensajes', ah(async (req, res) => {
   const id = idParam(req.params.id);
   await consultaAutorizada(req.user, id);
@@ -106,6 +112,7 @@ router.get('/:id/mensajes', ah(async (req, res) => {
   res.json({ mensajes: rows });
 }));
 
+/** Guarda un mensaje y, si responde el cliente, reactiva la consulta en espera. */
 router.post('/:id/mensajes', requireRole('cliente', 'tecnico'), ah(async (req, res) => {
   const id = idParam(req.params.id);
   const { contenido } = parse(schemas.mensaje, req.body);
@@ -143,6 +150,7 @@ router.post('/:id/mensajes', requireRole('cliente', 'tecnico'), ah(async (req, r
   res.status(201).json({ ok: true });
 }));
 
+/** Registra una única valoración del cliente sobre una consulta finalizada y avisa al técnico. */
 router.post('/:id/valoracion', requireRole('cliente'), ah(async (req, res) => {
   const id = idParam(req.params.id);
   const d = parse(schemas.valoracion, req.body);

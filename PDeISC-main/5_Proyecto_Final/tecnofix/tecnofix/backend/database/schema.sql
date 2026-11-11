@@ -4,6 +4,7 @@
 
 SET NAMES utf8mb4;
 
+-- Parámetros operativos editables desde el panel administrativo.
 CREATE TABLE IF NOT EXISTS configuracion (
   clave VARCHAR(60) NOT NULL PRIMARY KEY,
   valor VARCHAR(255) NOT NULL,
@@ -12,6 +13,7 @@ CREATE TABLE IF NOT EXISTS configuracion (
 
 INSERT IGNORE INTO configuracion (clave, valor) VALUES ('limite_consultas_default', '20');
 
+-- Sucursales: se desactivan en vez de eliminarse porque pueden tener técnicos e historial asociados.
 CREATE TABLE IF NOT EXISTS locales (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
@@ -24,6 +26,7 @@ CREATE TABLE IF NOT EXISTS locales (
   UNIQUE KEY uq_locales_nombre (nombre)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Identidad común a clientes, técnicos y administradores; deleted_at implementa baja lógica.
 CREATE TABLE IF NOT EXISTS usuarios (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   rol ENUM('cliente','tecnico','admin') NOT NULL,
@@ -44,6 +47,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   KEY idx_usuarios_social (proveedor_social, proveedor_social_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Códigos OAuth móviles guardados como hash y con vencimiento para que solo puedan canjearse una vez.
 CREATE TABLE IF NOT EXISTS oauth_mobile_codes (
   code_hash CHAR(64) NOT NULL PRIMARY KEY,
   usuario_id INT UNSIGNED NOT NULL,
@@ -53,6 +57,7 @@ CREATE TABLE IF NOT EXISTS oauth_mobile_codes (
   CONSTRAINT fk_oauth_mobile_codes_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Tokens de dispositivo asociados a su propietario; se eliminan al borrar la cuenta.
 CREATE TABLE IF NOT EXISTS push_tokens (
   token VARCHAR(255) NOT NULL PRIMARY KEY,
   usuario_id INT UNSIGNED NOT NULL,
@@ -63,6 +68,7 @@ CREATE TABLE IF NOT EXISTS push_tokens (
   CONSTRAINT fk_push_tokens_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Perfil de trabajo de cada técnico; límite y habilitación afectan la asignación automática.
 CREATE TABLE IF NOT EXISTS tecnicos (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT UNSIGNED NOT NULL,
@@ -80,6 +86,7 @@ CREATE TABLE IF NOT EXISTS tecnicos (
 
 -- Estados que CONSUMEN cupo del tecnico: asignada, en_proceso, esperando_cliente.
 -- pendiente (sin tecnico), finalizada y cancelada NO consumen cupo.
+-- Registro principal: una consulta pertenece a un cliente y puede quedar sin técnico mientras espera asignación.
 CREATE TABLE IF NOT EXISTS consultas (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   cliente_id INT UNSIGNED NOT NULL,
@@ -100,6 +107,7 @@ CREATE TABLE IF NOT EXISTS consultas (
   CONSTRAINT fk_consultas_tecnico FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Conversación cronológica asociada a una consulta; el rol del autor determina las vistas de abajo.
 CREATE TABLE IF NOT EXISTS mensajes (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   consulta_id INT UNSIGNED NOT NULL,
@@ -127,6 +135,7 @@ SELECT m.id, m.consulta_id, m.autor_id, u.nombre AS autor_nombre, u.apellido AS 
  WHERE u.rol = 'tecnico';
 
 -- UNIQUE(consulta_id): una consulta se califica una sola vez, garantizado por la base.
+-- La relación también conserva cliente y técnico evaluados aunque cambien datos de perfil.
 CREATE TABLE IF NOT EXISTS valoraciones (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   consulta_id INT UNSIGNED NOT NULL,
@@ -143,6 +152,7 @@ CREATE TABLE IF NOT EXISTS valoraciones (
   CONSTRAINT fk_val_tecnico FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Trazabilidad de cambios administrativos y del flujo de consultas; detalle conserva metadatos JSON.
 CREATE TABLE IF NOT EXISTS auditoria (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT UNSIGNED NULL,

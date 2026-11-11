@@ -12,6 +12,9 @@ const socialProviders = [
   { id: 'github', label: 'Continuar con GitHub' },
 ];
 
+/**
+ * Traduce códigos de error del flujo OAuth a mensajes claros para la pantalla de login.
+ */
 const socialErrorMessage = (code: string): string => ({
   account_unavailable: 'La cuenta está desactivada o no está disponible.',
   account_provider_mismatch: 'Esta cuenta ya está vinculada a otro método de inicio de sesión.',
@@ -32,6 +35,10 @@ interface AuthScreenProps {
   onThemeChange?: (mode: ThemeMode) => void;
 }
 
+/**
+ * Pantalla de acceso con email/contraseña y autenticación social para clientes.
+ * Si la sesión se autoriza, se guarda el token y se vuelve al flujo principal de la app.
+ */
 export default function AuthScreen({ onSession, initialError = '', themeMode = 'light', onThemeChange }: AuthScreenProps) {
   const [registering, setRegistering] = useState(false);
   const [form, setForm] = useState<Required<AuthForm>>({ nombre: '', apellido: '', email: '', telefono: '', password: '' });
@@ -39,6 +46,9 @@ export default function AuthScreen({ onSession, initialError = '', themeMode = '
   const [error, setError] = useState(initialError);
   const update = (key: keyof AuthForm) => (value: string) => setForm((current) => ({ ...current, [key]: value }));
 
+/**
+ * Abre el navegador del sistema para iniciar sesión con un proveedor OAuth y devuelve el código de autorización.
+ */
   const signInWithProvider = async (provider: string) => {
     setError('');
     setBusy(true);
@@ -70,6 +80,9 @@ export default function AuthScreen({ onSession, initialError = '', themeMode = '
     }
   };
 
+/**
+ * Envía el formulario de acceso o registro y guarda el token en SecureStore al autorizarse.
+ */
   const submit = async () => {
     setError('');
     setBusy(true);

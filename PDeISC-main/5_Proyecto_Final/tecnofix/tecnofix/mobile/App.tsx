@@ -15,6 +15,10 @@ import { getErrorMessage, type ThemeMode, type User, type UserRole } from './src
 type Screen = 'home' | 'profile' | 'admin' | 'detail' | 'password';
 type TabId = 'home' | 'profile' | 'admin';
 
+/**
+ * Barra inferior de navegación usada para cambiar entre las vistas principales de la app.
+ * Ajusta el label y el estado activo según el rol del usuario y la pantalla actual.
+ */
 function TabBar({ user, screen, onNavigate, bottomInset }: {
   user: User;
   screen: Screen;
@@ -49,10 +53,17 @@ function TabBar({ user, screen, onNavigate, bottomInset }: {
   );
 }
 
+/**
+ * Traduce el rol del usuario a una etiqueta amigable para el header de la app.
+ */
 function roleLabel(role: UserRole): string {
   return ({ cliente: 'Cliente', tecnico: 'Técnico', admin: 'Administrador' })[role];
 }
 
+/**
+ * Devuelve el contenedor principal de la app con SafeArea y la jerarquía de pantallas.
+ * La sesión y el tema se resuelven dentro del árbol para que el resto de vistas compartan el mismo estado.
+ */
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -61,6 +72,10 @@ export default function App() {
   );
 }
 
+/**
+ * Mantiene la sesión activa, la navegación global y los efectos secundarios de autenticación,
+ * tema y notificaciones. Es el punto de coordinación entre las pantallas del flujo móvil.
+ */
 function AppContent() {
   const insets = useSafeAreaInsets();
   const [user, setUser] = useState<User | null>(null);
@@ -125,6 +140,10 @@ function AppContent() {
     return () => { active = false; };
   }, []);
 
+/**
+ * Guarda la preferencia del tema y refleja el cambio en la UI.
+ * Si el almacenamiento falla, la app sigue con el tema activo pero avisa al usuario.
+ */
   const changeTheme = async (mode: ThemeMode) => {
     const nextMode = setThemeMode(mode);
     setThemeModeState(nextMode);
@@ -159,10 +178,17 @@ function AppContent() {
     return () => { active = false; };
   }, []);
 
+/**
+ * Navega entre pantallas con un posible contexto de detalle asociado a una consulta.
+ */
   const goTo = (next: Screen, id: number | null = null) => {
     setSelectedId(id);
     setScreen(next);
   };
+/**
+ * Cierra la sesión del usuario y limpia las suscripciones de notificaciones locales.
+ * El token se elimina de almacenamiento persistente y la app vuelve a la pantalla de login.
+ */
   const logout = () => Alert.alert('Cerrar sesión', '¿Querés salir de TecnoFix Soporte?', [
     { text: 'Cancelar', style: 'cancel' },
     { text: 'Cerrar sesión', style: 'destructive', onPress: async () => {
@@ -176,10 +202,16 @@ function AppContent() {
       setScreen('home');
     } },
   ]);
+/**
+ * Refresca el usuario actual tras cambios de perfil o contraseña sin perder el estado de navegación.
+ */
   const onUserUpdated = (next: User) => {
     setUser(next);
     if (!next.debe_cambiar_password && screen === 'password') setScreen('home');
   };
+/**
+ * Entrada del flujo de autenticación: activa la sesión y deriva a la pantalla de cambio de clave si corresponde.
+ */
   const onAuthenticated = (next: User) => {
     setUser(next);
     setScreen(next.debe_cambiar_password ? 'password' : 'home');

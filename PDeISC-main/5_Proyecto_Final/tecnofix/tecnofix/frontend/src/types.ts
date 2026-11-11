@@ -1,3 +1,7 @@
+/**
+ * Contratos de dominio usados por la UI: roles, consultas, usuarios, locales y valoraciones.
+ * Se mantienen centrados para que los componentes no dependan de payloads ad hoc del backend.
+ */
 export type Rol = 'cliente' | 'tecnico' | 'admin';
 export type EstadoConsulta =
   | 'pendiente'

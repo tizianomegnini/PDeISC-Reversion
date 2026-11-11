@@ -11,6 +11,18 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
 }
 
+/**
+ * Diálogo modal para confirmaciones destructivas o decisiones de negocio con bloqueo de doble click.
+ *
+ * @param open Controla la apertura del dialog nativo.
+ * @param title Título visible principal.
+ * @param description Cuerpo aclaratorio de la acción.
+ * @param confirmLabel Texto del botón de confirmación.
+ * @param danger Si es true, resalta la acción como potencialmente peligrosa.
+ * @param busy Deshabilita los controles mientras se procesa la acción.
+ * @param onCancel Cierra el diálogo sin aplicar cambios.
+ * @param onConfirm Ejecuta la acción confirmada.
+ */
 export default function ConfirmDialog({
   open,
   title,

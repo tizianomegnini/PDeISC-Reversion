@@ -3,6 +3,12 @@ import { pool } from '../config/db.js';
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const EXPO_BATCH_SIZE = 100;
 
+/**
+ * Envía mensajes a Expo en lotes y elimina tokens que ya no corresponden a dispositivos.
+ * @param {Array<{ token: string, usuario_id?: number }>} tokens Dispositivos destino.
+ * @param {{ title: string, body: string, data: object }} notification Contenido push.
+ * @param {typeof fetch} fetchImpl Transporte inyectable para pruebas.
+ */
 export async function sendExpoPushNotifications(tokens, notification, fetchImpl = fetch) {
   for (let start = 0; start < tokens.length; start += EXPO_BATCH_SIZE) {
     const batch = tokens.slice(start, start + EXPO_BATCH_SIZE);
@@ -43,6 +49,7 @@ export async function sendExpoPushNotifications(tokens, notification, fetchImpl 
   }
 }
 
+/** Busca los dispositivos del usuario y envía la notificación sin propagar fallos al flujo principal. */
 export async function notifyUser(usuarioId, notification, eventName) {
   if (!usuarioId) return;
   try {
@@ -54,6 +61,7 @@ export async function notifyUser(usuarioId, notification, eventName) {
   }
 }
 
+/** Resuelve el usuario de un técnico antes de delegar el envío a notifyUser. */
 export async function notifyTechnician(tecnicoId, notification, eventName) {
   if (!tecnicoId) return;
   try {

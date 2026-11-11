@@ -16,12 +16,21 @@ import {
   AdminEstadisticas,
 } from './features/admin';
 
+/**
+ * Punto de entrada del router principal. Sentimos a los usuarios a su pantalla
+ * inicial según el rol y sincronizamos el tema visual del sitio.
+ */
 function Inicio() {
   const { user, loading } = useAuth();
   if (loading) return <Loading />;
   return <Navigate to={user ? homePorRol[user.rol] : '/login'} replace />;
 }
 
+/**
+ * Configura el árbol de rutas de la app y centraliza la navegación por rol.
+ *
+ * @returns El layout global con navbar y rutas protegidas.
+ */
 export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('tecnofix-theme') || 'light');
   const { user } = useAuth();

@@ -20,25 +20,43 @@ import type {
   User,
 } from './types';
 
+/**
+ * API móvil del backend. Centraliza autenticación, consultas, administración y almacenamiento
+ * seguro del token para que las pantallas no deban conocer la infraestructura HTTP.
+ */
 const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://pdeisc-production-182f.up.railway.app/api/v1').replace(/\/+$/, '');
 const TOKEN_KEY = 'tecnofix-session-token';
 let token: string | null = null;
 
+/**
+ * Genera la URL de retorno para el flujo OAuth del proveedor social conectado.
+ */
 export function getOAuthRedirectUri(): string {
   return Linking.createURL('oauth');
 }
 
+/**
+ * Restaura el token persistido desde SecureStore para reanudar la sesión del usuario.
+ */
 export async function restoreToken(): Promise<string | null> {
   token = await SecureStore.getItemAsync(TOKEN_KEY);
   return token;
 }
 
+/**
+ * Guarda o borra el token de sesión en almacenamiento seguro.
+ * El valor actual se mantiene en memoria para no necesitar un `read` adicional por request.
+ */
 export async function saveToken(value: string | null): Promise<void> {
   token = value;
   if (value) await SecureStore.setItemAsync(TOKEN_KEY, value);
   else await SecureStore.deleteItemAsync(TOKEN_KEY);
 }
 
+/**
+ * Error de capa HTTP con el código de estado del backend para distinguir fallas de conexión
+ * de respuestas con contenido funcional (401, 403, 409, etc.).
+ */
 export class ApiError extends Error {
   status: number;
 
@@ -86,6 +104,9 @@ interface ApiMessage {
   message?: string;
 }
 
+/**
+ * API de autenticación y perfil del usuario.
+ */
 export const authApi = {
   me: () => get<{ usuario: User }>('/auth/me'),
   login: (data: AuthForm) => post<AuthResponse>('/auth/login', data),
@@ -98,11 +119,17 @@ export const authApi = {
   changePassword: (data: { actual: string; nueva: string }) => post<ApiMessage>('/auth/change-password', data),
 };
 
+/**
+ * Endpoints para registrar o liberar el dispositivo push asociado a la app móvil.
+ */
 export const notificationsApi = {
   registerDevice: (pushToken: string, plataforma: string) => post<ApiMessage>('/notificaciones/dispositivo', { token: pushToken, plataforma }),
   unregisterDevice: (pushToken: string) => del<ApiMessage>('/notificaciones/dispositivo', { token: pushToken }),
 };
 
+/**
+ * CRUD y chat de consultas; también expone la valoración final del servicio.
+ */
 export const consultasApi = {
   list: (estado?: ConsultationStatus) => get<{ consultas: Consultation[] }>(`/consultas${estado ? `?estado=${encodeURIComponent(estado)}` : ''}`),
   get: (id: number) => get<{ consulta: Consultation }>(`/consultas/${id}`),
@@ -113,10 +140,16 @@ export const consultasApi = {
   valorar: (id: number, estrellas: number, comentario: string | null) => post<ApiMessage>(`/consultas/${id}/valoracion`, { estrellas, comentario }),
 };
 
+/**
+ * Resumen del técnico para la vista de seguimiento en la home.
+ */
 export const tecnicoApi = {
   resumen: () => get<TechnicianSummary>('/tecnico/resumen'),
 };
 
+/**
+ * Acciones administrativas: resumen, técnicos, locales, estadísticas y configuración global.
+ */
 export const adminApi = {
   resumen: () => get<{ resumen: AdminSummary }>('/admin/resumen'),
   estadisticas: () => get<StatisticsResponse>('/admin/estadisticas'),

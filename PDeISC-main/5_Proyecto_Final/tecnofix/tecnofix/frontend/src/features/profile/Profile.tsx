@@ -6,6 +6,9 @@ import { authApi, errorMessage } from '../../services/api';
 import { formFieldSetter } from '../../utils';
 import type { FormEvent } from 'react';
 
+/**
+ * Edición del perfil del usuario autenticado: nombre, apellido y teléfono.
+ */
 export default function Profile() {
   const { user, setUser } = useAuth();
   const toast = useToast();

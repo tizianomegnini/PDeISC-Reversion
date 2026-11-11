@@ -10,6 +10,7 @@ import { parse, schemas } from '../utils/validate.js';
 import { signToken, cookieOptions, COOKIE_NAME } from '../utils/tokens.js';
 import { authenticate } from '../middleware/auth.js';
 
+/** Registro, sesión y OAuth web/móvil; vincula identidades sociales a usuarios locales. */
 const router = Router();
 const DUMMY_HASH = bcrypt.hashSync('dummy-password-1', 4); // evita revelar por tiempo si el email existe
 
@@ -17,6 +18,7 @@ const limiter = env.isTest
   ? (_req, _res, next) => next()
   : rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false, message: { error: 'Demasiados intentos. Espere unos minutos.' } });
 
+/** Expone solo los campos de perfil permitidos en respuestas de autenticación. */
 export const publico = (u) => ({
   id: u.id, rol: u.rol, nombre: u.nombre, apellido: u.apellido, email: u.email, telefono: u.telefono ?? null,
   tecnico_id: u.tecnico_id ?? null, debe_cambiar_password: !!u.debe_cambiar_password,
@@ -65,12 +67,14 @@ const githubStateCookieOptions = () => ({
   path: GITHUB_CALLBACK_PATH,
   maxAge: GOOGLE_STATE_MAX_AGE,
 });
+/** Compara el state OAuth de la respuesta con el de la cookie sin revelar diferencias de tiempo. */
 function estadoValido(state, cookieState) {
   if (typeof state !== 'string' || typeof cookieState !== 'string') return false;
   const recibido = Buffer.from(state);
   const esperado = Buffer.from(cookieState);
   return recibido.length === esperado.length && timingSafeEqual(recibido, esperado);
 }
+/** Interpreta el state guardado en cookie, que también contiene el destino OAuth móvil si aplica. */
 function parseOAuthStateCookie(cookieState) {
   if (typeof cookieState !== 'string') return { expectedState: null, redirectUri: null };
   const mobile = cookieState.match(/^mobile:([a-f0-9]{64}):([A-Za-z0-9_-]+)$/);
@@ -80,6 +84,7 @@ function parseOAuthStateCookie(cookieState) {
     ? { expectedState: mobile[1], redirectUri }
     : { expectedState: null, redirectUri: null };
 }
+/** Restringe los esquemas y rutas de retorno aceptados para evitar redirecciones arbitrarias. */
 function validMobileRedirect(value) {
   if (typeof value !== 'string' || value.length > 500) return false;
   try {
@@ -93,16 +98,19 @@ function validMobileRedirect(value) {
     return false;
   }
 }
+/** Construye el enlace profundo móvil incorporando los parámetros del callback. */
 function mobileOAuthUrl(redirectUri, params) {
   const url = new URL(redirectUri);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
   return url.toString();
 }
+/** Dirige errores OAuth al frontend web o al enlace profundo móvil original. */
 function socialErrorUrl(state, error) {
   return state.redirectUri
     ? mobileOAuthUrl(state.redirectUri, { error })
     : frontendLoginUrl(error);
 }
+/** Completa el login: cookie para web o código de un solo uso, con hash y vencimiento, para móvil. */
 async function finishSocialLogin(req, res, user, state) {
   if (!state.redirectUri) {
     abrirSesion(req, res, user);
@@ -135,6 +143,7 @@ function abrirSesion(req, res, u) {
   return req.headers['x-client'] === 'mobile' ? { token } : {};
 }
 
+/** Registra solo clientes; entrega JWT en cookie y también en JSON a clientes móviles. */
 router.post('/register', limiter, ah(async (req, res) => {
   const d = parse(schemas.register, req.body);
   const hash = await bcrypt.hash(d.password, env.bcryptRounds);
@@ -153,6 +162,7 @@ router.post('/register', limiter, ah(async (req, res) => {
   res.status(201).json({ usuario: publico(u), ...abrirSesion(req, res, u) });
 }));
 
+/** Comprueba credenciales con tiempo comparable incluso si el correo no existe. */
 router.post('/login', limiter, ah(async (req, res) => {
   const d = parse(schemas.login, req.body);
   const [rows] = await pool.execute(
@@ -163,19 +173,23 @@ router.post('/login', limiter, ah(async (req, res) => {
   res.json({ usuario: publico(u), ...abrirSesion(req, res, u) });
 }));
 
+/** Revoca la cookie de sesión del navegador. */
 router.post('/logout', (_req, res) => {
   res.clearCookie(COOKIE_NAME, { ...cookieOptions(), maxAge: undefined });
   res.json({ ok: true });
 });
 
+/** Expone el perfil actual y permite acceder incluso con contraseña inicial pendiente. */
 router.get('/me', authenticate({ allowPasswordChange: true }), (req, res) => res.json({ usuario: publico(req.user) }));
 
+/** Actualiza únicamente los campos de perfil admitidos por el esquema. */
 router.put('/me', authenticate(), ah(async (req, res) => {
   const d = parse(schemas.updateProfile, req.body);
   await pool.execute('UPDATE usuarios SET nombre=?, apellido=?, telefono=? WHERE id=?', [d.nombre, d.apellido, d.telefono, req.user.id]);
   res.json({ usuario: publico({ ...req.user, ...d }) });
 }));
 
+/** Cambia la contraseña tras verificar la actual y elimina la obligación de cambio inicial. */
 router.post('/change-password', authenticate({ allowPasswordChange: true }), ah(async (req, res) => {
   const d = parse(schemas.changePassword, req.body);
   const [rows] = await pool.execute('SELECT password_hash FROM usuarios WHERE id=?', [req.user.id]);
@@ -188,12 +202,14 @@ router.post('/change-password', authenticate({ allowPasswordChange: true }), ah(
 }));
 
 // ---- Login social ----
+// Los flujos web y móvil comparten state anti-CSRF; móvil conserva su destino validado en la cookie.
 const PROVEEDORES = {
   google: googleConfigurado,
   facebook: facebookConfigurado,
   github: githubConfigurado,
 };
 
+/** Indica qué integraciones sociales tienen credenciales configuradas. */
 router.get('/social', (_req, res) =>
   res.json({ proveedores: Object.entries(PROVEEDORES).map(([proveedor, estaConfigurado]) => ({
     proveedor, configurado: estaConfigurado(),
@@ -261,6 +277,7 @@ router.get('/social/github/mobile', (req, res, next) => {
   res.redirect(`https://github.com/login/oauth/authorize?${query}`);
 });
 
+/** Canjea atómicamente un código OAuth móvil válido por un JWT, y lo consume una sola vez. */
 router.post('/social/mobile/exchange', limiter, ah(async (req, res) => {
   const { code } = req.body || {};
   if (typeof code !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(code)) throw badRequest('Código de inicio móvil inválido');
@@ -280,6 +297,7 @@ router.post('/social/mobile/exchange', limiter, ah(async (req, res) => {
   res.json({ usuario: publico(user), token: signToken(user) });
 }));
 
+/** Consulta la API GitHub con timeout y normaliza respuestas inválidas como error OAuth. */
 async function githubJson(url, options = {}) {
   const response = await fetch(url, {
     ...options,
@@ -296,6 +314,7 @@ async function githubJson(url, options = {}) {
   return data;
 }
 
+/** Busca o crea la cuenta asociada al correo verificado, sin vincular identidades ajenas. */
 async function usuarioGitHub(profile, email) {
   const githubId = String(profile.id);
   const buscarPorGitHub = async () => {
@@ -367,6 +386,7 @@ async function usuarioGitHub(profile, email) {
   }
 }
 
+/** Valida state, intercambia el código OAuth y obtiene el correo verificado de GitHub. */
 router.get('/social/github/callback', async (req, res) => {
   const state = req.query.state;
   const oauthState = parseOAuthStateCookie(req.cookies[GITHUB_STATE_COOKIE]);
@@ -445,6 +465,7 @@ router.get('/social/facebook/mobile', (req, res, next) => {
   res.redirect(`https://www.facebook.com/${FACEBOOK_GRAPH_VERSION}/dialog/oauth?${query}`);
 });
 
+/** Consulta Graph API con timeout y convierte errores del proveedor en fallos de login. */
 async function facebookJson(url, options) {
   const response = await fetch(url, { ...options, signal: AbortSignal.timeout(10000) });
   const data = await response.json().catch(() => null);
@@ -452,6 +473,7 @@ async function facebookJson(url, options) {
   return data;
 }
 
+/** Busca o crea una cuenta vinculada a un perfil Facebook previamente validado. */
 async function usuarioFacebook(profile) {
   const email = profile.email.toLowerCase();
   const buscarPorFacebook = async () => {
@@ -513,6 +535,7 @@ async function usuarioFacebook(profile) {
   }
 }
 
+/** Verifica state y token de Facebook antes de resolver la cuenta local del usuario. */
 router.get('/social/facebook/callback', async (req, res) => {
   const state = req.query.state;
   const oauthState = parseOAuthStateCookie(req.cookies[FACEBOOK_STATE_COOKIE]);
@@ -559,6 +582,7 @@ router.get('/social/facebook/callback', async (req, res) => {
   }
 });
 
+/** Asocia el subject de Google con una cuenta cuyo correo fue verificado por el proveedor. */
 async function usuarioGoogle(payload) {
   const email = payload.email.toLowerCase();
   const sub = payload.sub;
@@ -635,6 +659,7 @@ async function usuarioGoogle(payload) {
   return usuario;
 }
 
+/** Valida el callback de Google y asocia únicamente correos confirmados por el proveedor. */
 router.get('/social/google/callback', async (req, res) => {
   const state = req.query.state;
   const oauthState = parseOAuthStateCookie(req.cookies[GOOGLE_STATE_COOKIE]);
@@ -663,6 +688,7 @@ router.get('/social/google/callback', async (req, res) => {
   }
 });
 
+/** Informa si un proveedor es desconocido o está declarado pero aún no implementado. */
 router.all('/social/:proveedor', (req, _res, next) => {
   const p = req.params.proveedor;
   if (!Object.hasOwn(PROVEEDORES, p)) return next(new HttpError(404, 'Proveedor desconocido'));

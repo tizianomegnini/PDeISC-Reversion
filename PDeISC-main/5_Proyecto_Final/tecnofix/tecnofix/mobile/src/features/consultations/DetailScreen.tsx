@@ -25,6 +25,9 @@ interface ChatProps {
   reload: () => void;
 }
 
+/**
+ * Conversación privada de una consulta con polling cada 8 segundos para reflejar mensajes nuevos.
+ */
 function Chat({ consultaId, currentUserId, cerrada, canSend, reload }: ChatProps) {
   const keyboardScroll = useKeyboardScroll();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -148,6 +151,9 @@ function Chat({ consultaId, currentUserId, cerrada, canSend, reload }: ChatProps
   );
 }
 
+/**
+ * Formulario de valoración final para consultas culminadas.
+ */
 function Rating({ consulta, onRated }: { consulta: Consultation; onRated: () => void }) {
   const [stars, setStars] = useState<number>(0);
   const [comment, setComment] = useState('');
@@ -185,6 +191,10 @@ interface DetailScreenProps {
   onDone: () => void;
 }
 
+/**
+ * Pantalla de detalle de una consulta con estado, chat y acciones según el rol del usuario.
+ * Al cerrar o finalizar una tarea, notifica a la home para recargar el listado principal.
+ */
 export default function DetailScreen({ id, user, onBack, onDone }: DetailScreenProps) {
   const [consulta, setConsulta] = useState<Consultation | null>(null);
   const [error, setError] = useState('');

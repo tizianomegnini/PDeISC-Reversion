@@ -7,6 +7,9 @@ import ErrorBox from '../../components/ErrorBox';
 import ConsultasTable from '../../components/ConsultasTable';
 import { errorMessage } from '../../services/api';
 
+/**
+ * Cola de consultas sin técnico asignado; permite reasignar casos masivamente o individualmente.
+ */
 export default function AdminPendientes() {
   const toast = useToast();
   const { data, error, loading, reload } = useFetch(() => adminApi.pendientes());

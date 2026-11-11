@@ -5,6 +5,9 @@ import ErrorBox from '../../components/ErrorBox';
 import ConsultasTable from '../../components/ConsultasTable';
 import Stars from '../../components/Stars';
 
+/**
+ * Panel operativo del técnico: resumen de evaluación, límite de consultas y casos asignados.
+ */
 export default function TecnicoPanel() {
   const resumen = useFetch(() => tecnicoApi.resumen());
   const lista = useFetch(() => consultasApi.list());

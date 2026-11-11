@@ -11,6 +11,9 @@ import type { Local } from '../../types';
 
 const VACIO = { nombre: '', direccion: '', ciudad: '', telefono: '' };
 
+/**
+ * Gestión de locales activos/inactivos con edición de datos básicos y estado de atención.
+ */
 export default function AdminLocales() {
   const toast = useToast();
   const { data, error, loading, reload } = useFetch(() => adminApi.locales());

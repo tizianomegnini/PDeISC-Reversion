@@ -4,9 +4,11 @@ import { ah, forbidden } from '../utils/errors.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { statsTecnico } from '../services/stats.js';
 
+/** Endpoints privados del perfil operativo del técnico autenticado. */
 const router = Router();
 router.use(authenticate(), requireRole('tecnico'));
 
+/** Combina datos del perfil asignado con indicadores calculados para ese técnico. */
 router.get('/resumen', ah(async (req, res) => {
   if (!req.user.tecnico_id) throw forbidden('Su cuenta no tiene perfil de técnico');
   const [t] = await pool.execute(

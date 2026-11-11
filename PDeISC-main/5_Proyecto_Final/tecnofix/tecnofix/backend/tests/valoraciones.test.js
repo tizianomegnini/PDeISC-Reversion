@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { pool } from '../src/config/db.js';
 import { resetDb, closeDb, registrarCliente, crearTecnico, crearAdmin, login, api, crearConsulta, consultaBody } from './helpers.js';
 
+// Comprueba transiciones, mensajería, calificaciones únicas y estadísticas derivadas.
 let cli, otro, tec, tecTok, admTok, c;
 
 before(async () => {

@@ -14,8 +14,14 @@ import type {
 
 // Única puerta de entrada a los datos: el frontend NUNCA habla con MySQL, solo con esta API.
 // Una app móvil (Expo) reutiliza la misma API con "Authorization: ******" y el header "X-Client: mobile".
+/**
+ * Base URL compartida por todas las llamadas del frontend con cookies de sesión incluidas.
+ */
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
+/**
+ * Error de red o de backend con código HTTP y payload opcional de detalle.
+ */
 export class ApiError extends Error {
   constructor(message: string, public readonly status: number, public readonly detalles?: unknown) {
     super(message);
@@ -131,6 +137,9 @@ export const adminApi = {
     put<Record<string, never>>('/admin/configuracion', data),
 };
 
+/**
+ * Normaliza errores de fetch para mostrar mensajes claros al usuario final.
+ */
 export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Ocurrió un error inesperado.';
 }

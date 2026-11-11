@@ -17,6 +17,10 @@ Notifications.setNotificationHandler({
   }),
 });
 
+/**
+ * Registra el dispositivo actual para recibir push notifications y persiste el token del sistema.
+ * En emuladores o entornos no físicos, devuelve un resultado `unsupported` sin romper la app.
+ */
 export async function registerPushNotifications(): Promise<PushRegistrationResult> {
   if (Platform.OS !== 'android' && Platform.OS !== 'ios') return { status: 'unsupported' };
   if (!Device.isDevice) return { status: 'unsupported' };
@@ -45,6 +49,9 @@ export async function registerPushNotifications(): Promise<PushRegistrationResul
   return { status: 'registered' };
 }
 
+/**
+ * Elimina el token push del backend y del almacenamiento local para cerrar la sesión del dispositivo.
+ */
 export async function unregisterPushNotifications() {
   const pushToken = await SecureStore.getItemAsync(PUSH_TOKEN_KEY);
   if (!pushToken) return;

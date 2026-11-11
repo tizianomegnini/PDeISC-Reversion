@@ -10,6 +10,12 @@ const MENU: Record<Rol, Array<[string, string]>> = {
   admin: [['/admin', 'Resumen'], ['/admin/pendientes', 'Pendientes'], ['/admin/tecnicos', 'Técnicos'], ['/admin/locales', 'Locales'], ['/admin/estadisticas', 'Estadísticas'], ['/perfil', 'Mis datos']],
 };
 
+/**
+ * Barra superior del sistema con menú por rol y acceso a cierre de sesión.
+ *
+ * @param theme Tema actual para switch de modo oscuro/claro.
+ * @param onToggleTheme Alterna el tema global de la aplicación.
+ */
 export default function Navbar({ theme, onToggleTheme }: { theme: string; onToggleTheme: () => void }) {
   const [abierto, setAbierto] = useState(false);
   const { user, logout } = useAuth();

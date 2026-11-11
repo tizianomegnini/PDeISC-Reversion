@@ -28,6 +28,10 @@ const AYUDA_ESTADO = {
   cancelada: 'Esta consulta fue cancelada y ya no admite nuevos mensajes.',
 };
 
+/**
+ * Vista detallada de una consulta para cliente, técnico o administrador.
+ * Muestra datos del caso, historial de mensajes, acciones de estado y valoración final.
+ */
 export default function ConsultaDetalle() {
   const { id } = useParams();
   const { user } = useAuth();

@@ -3,6 +3,7 @@ import { ESTADOS_ACTIVOS, puntaje } from './assignment.js';
 
 const IN_ACTIVOS = ESTADOS_ACTIVOS.map((e) => `'${e}'`).join(',');
 
+/** Resume atenciones y valoraciones de un técnico identificado por su id. */
 export async function statsTecnico(tecnicoId) {
   const [r] = await pool.execute(
     `SELECT
@@ -20,6 +21,7 @@ export async function statsTecnico(tecnicoId) {
   };
 }
 
+/** Lista técnicos con carga, métricas de servicio y puntaje de asignación. */
 export async function listarTecnicosConStats() {
   const [rows] = await pool.execute(
     `SELECT t.id, t.usuario_id, t.local_id, t.especialidad, t.limite_consultas, t.habilitado,
@@ -40,6 +42,7 @@ export async function listarTecnicosConStats() {
   }));
 }
 
+/** Agrega disponibilidad y resultados de las consultas por local. */
 export async function statsLocales() {
   const [rows] = await pool.execute(
     `SELECT l.id, l.nombre, l.direccion, l.ciudad, l.telefono, l.activo,
@@ -58,6 +61,7 @@ export async function statsLocales() {
   }));
 }
 
+/** Devuelve los indicadores globales usados en el panel administrativo. */
 export async function resumenAdmin() {
   const [r] = await pool.execute(
     `SELECT

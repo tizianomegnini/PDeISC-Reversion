@@ -24,6 +24,10 @@ interface ProfileScreenProps {
   onThemeChange?: (mode: ThemeMode) => void;
 }
 
+/**
+ * Perfil del usuario, actualización de datos y cambio de contraseña.
+ * Si el backend exige un cambio obligatorio, la pantalla queda en modo de flujo de seguridad hasta completar el dato.
+ */
 export default function ProfileScreen({ user, onBack, onUserUpdated, mustChangePassword = false, themeMode = 'light', onThemeChange }: ProfileScreenProps) {
   const [profile, setProfile] = useState({
     nombre: user.nombre || '',
@@ -37,6 +41,9 @@ export default function ProfileScreen({ user, onBack, onUserUpdated, mustChangeP
   const updateProfileField = (key: keyof ProfileForm) => (value: string) => setProfile((current) => ({ ...current, [key]: value }));
   const updatePasswordField = (key: keyof PasswordForm) => (value: string) => setPassword((current) => ({ ...current, [key]: value }));
 
+/**
+ * Persiste los datos personales del usuario y refresca el estado global de sesión.
+ */
   const saveProfile = async () => {
     setBusy(true);
     setError('');
@@ -51,6 +58,9 @@ export default function ProfileScreen({ user, onBack, onUserUpdated, mustChangeP
       setBusy(false);
     }
   };
+/**
+ * Cambia la clave del usuario y vuelve a recuperar el perfil actualizado del backend.
+ */
   const savePassword = async () => {
     setBusy(true);
     setError('');

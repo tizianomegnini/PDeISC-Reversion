@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { sendExpoPushNotifications } from '../src/services/push.js';
 
+// Comprueba el tamaño de lotes y el manejo de errores de la integración con Expo Push.
 test('envía notificaciones push en lotes de hasta 100 dispositivos', async () => {
   const tokens = Array.from({ length: 205 }, (_, index) => ({ token: `ExponentPushToken[device-${index}]` }));
   const requests = [];

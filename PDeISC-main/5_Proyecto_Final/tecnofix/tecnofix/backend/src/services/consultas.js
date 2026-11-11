@@ -1,6 +1,7 @@
 import { pool } from '../config/db.js';
 import { notFound } from '../utils/errors.js';
 
+/** Proyección común de consulta con datos del cliente, técnico, local y valoración. */
 export const SELECT_CONSULTA = `
   SELECT c.id, c.cliente_id, c.tecnico_id, c.tipo_equipo, c.marca, c.modelo, c.descripcion, c.estado,
          c.asignada_at, c.finalizada_at, c.created_at, c.updated_at,
@@ -15,7 +16,13 @@ export const SELECT_CONSULTA = `
     LEFT JOIN locales l ON l.id = t.local_id
     LEFT JOIN valoraciones v ON v.consulta_id = c.id`;
 
-/** Devuelve la consulta solo si el usuario tiene derecho a verla; si no, responde 404 (no revela si existe). */
+/**
+ * Devuelve la consulta solo si el usuario tiene derecho a verla; si no, responde 404 (no revela si existe).
+ * @param {object} user Usuario autenticado (rol, id y tecnico_id cuando aplica).
+ * @param {number} id Identificador de consulta.
+ * @param {object} conn Conexión MySQL o pool usado para la lectura.
+ * @returns {Promise<object>} Consulta con sus datos relacionados.
+ */
 export async function consultaAutorizada(user, id, conn = pool) {
   const [rows] = await conn.execute(`${SELECT_CONSULTA} WHERE c.id = ?`, [id]);
   const c = rows[0];

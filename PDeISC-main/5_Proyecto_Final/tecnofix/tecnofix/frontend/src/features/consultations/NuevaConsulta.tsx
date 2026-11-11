@@ -6,6 +6,9 @@ import { errorMessage } from '../../services/api';
 import { formFieldSetter } from '../../utils';
 import type { FormEvent } from 'react';
 
+/**
+ * Formulario para abrir una nueva consulta de soporte con información del equipo y el problema.
+ */
 const TIPOS = ['Celular', 'Notebook', 'PC de escritorio', 'Tablet', 'Consola', 'Impresora', 'Otro'];
 
 export default function NuevaConsulta() {

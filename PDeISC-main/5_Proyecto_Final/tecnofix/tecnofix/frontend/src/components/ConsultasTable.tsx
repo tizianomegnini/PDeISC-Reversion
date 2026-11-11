@@ -11,6 +11,14 @@ interface ConsultasTableProps {
   children?: (consulta: Consulta) => ReactNode;
 }
 
+/**
+ * Tabla reutilizable para listar consultas con variantes según el rol y la información requerida.
+ *
+ * @param consultas Lista de casos a mostrar.
+ * @param mostrarCliente Cuando es true, incluye nombre del cliente.
+ * @param mostrarTecnico Cuando es false, oculta la columna de técnico/local.
+ * @param children Slot opcional para acciones por fila.
+ */
 export default function ConsultasTable({ consultas, mostrarCliente = false, mostrarTecnico = true, children }: ConsultasTableProps) {
   if (!consultas.length) return <p className="muted">No hay consultas para mostrar.</p>;
   return (

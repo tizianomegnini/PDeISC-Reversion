@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { pool } from '../src/config/db.js';
 import { resetDb, closeDb, registrarCliente, crearTecnico, crearAdmin, crearLocal, login, api, crearConsulta, setValoraciones } from './helpers.js';
 
+// Comprueba ranking, concurrencia, cupos y reasignación de consultas pendientes.
 let cli, admTok;
 
 before(async () => { await resetDb(); admTok = await login((await crearAdmin()).email); });

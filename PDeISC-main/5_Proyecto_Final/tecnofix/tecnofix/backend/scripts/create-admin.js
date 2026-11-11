@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { pool } from '../src/config/db.js';
 import { env } from '../src/config/env.js';
 
+// Crea el administrador inicial si no existe; una contraseña autogenerada se escribe en un archivo local ignorado por Git.
 const email = (process.env.ADMIN_EMAIL || 'admin@tecnofix.local').toLowerCase();
 const provista = process.env.ADMIN_PASSWORD;
 const password = provista || crypto.randomBytes(9).toString('base64url') + 'a1';

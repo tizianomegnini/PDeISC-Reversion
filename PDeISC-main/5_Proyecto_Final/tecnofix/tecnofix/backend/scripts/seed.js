@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { pool } from '../src/config/db.js';
 import { env } from '../src/config/env.js';
 
+// Carga de demostración idempotente por locales: crea sucursales, técnicos, admin y cliente si la base está vacía.
 const LOCALES = [
   { nombre: 'TecnoFix Centro', direccion: 'Av. Colón 1500', ciudad: 'Mar del Plata', telefono: '223 400-0001' },
   { nombre: 'TecnoFix Güemes', direccion: 'Güemes 2800', ciudad: 'Mar del Plata', telefono: '223 400-0002' },
@@ -23,6 +24,7 @@ const gen = () => crypto.randomBytes(9).toString('base64url') + 'a1';
 const fija = process.env.SEED_USER_PASSWORD || null;
 const creds = [];
 
+/** Inserta un usuario con hash bcrypt y añade sus credenciales de desarrollo al resumen local. */
 async function crearUsuario(rol, nombre, apellido, email, password, debeCambiar) {
   const [r] = await pool.execute(
     'INSERT INTO usuarios (rol, nombre, apellido, email, password_hash, debe_cambiar_password) VALUES (?,?,?,?,?,?)',

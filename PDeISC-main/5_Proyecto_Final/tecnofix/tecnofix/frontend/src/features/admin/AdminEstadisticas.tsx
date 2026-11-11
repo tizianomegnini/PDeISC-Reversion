@@ -6,6 +6,9 @@ import Stars from '../../components/Stars';
 import { fecha, nombreCompleto, promedio } from '../../utils';
 import StatisticsCharts from './StatisticsCharts';
 
+/**
+ * Dashboard de métricas administrativas con KPIs, tablas por local y técnico, y valoraciones recientes.
+ */
 export default function AdminEstadisticas() {
   const est = useFetch(() => adminApi.estadisticas());
   const val = useFetch(() => adminApi.valoraciones());

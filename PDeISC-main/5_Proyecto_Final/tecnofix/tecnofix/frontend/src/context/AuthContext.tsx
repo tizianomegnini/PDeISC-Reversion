@@ -13,12 +13,20 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/**
+ * Acceso centralizado al usuario autenticado y a las acciones de sesión.
+ */
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return context;
 }
 
+/**
+ * Mantiene en contexto la sesión actual y sincroniza los datos con /auth/me.
+ *
+ * @param children árbol de componentes que heredan el estado de autenticación.
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);

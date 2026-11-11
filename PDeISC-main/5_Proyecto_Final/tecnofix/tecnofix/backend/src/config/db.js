@@ -1,6 +1,7 @@
 import mysql from 'mysql2/promise';
 import { env } from './env.js';
 
+/** Pool compartido de MySQL; las transacciones obtienen conexiones exclusivas del pool. */
 export const pool = mysql.createPool({
   host: env.db.host,
   port: env.db.port,
@@ -14,7 +15,11 @@ export const pool = mysql.createPool({
   timezone: 'Z',
 });
 
-/** Ejecuta fn(conn) dentro de una transaccion. Hace rollback si algo falla. */
+/**
+ * Ejecuta una operación con conexión dedicada y confirma o revierte la transacción completa.
+ * @param {(conn: import('mysql2/promise').PoolConnection) => Promise<any>} fn Operación que usa la conexión.
+ * @returns {Promise<any>} Resultado de fn tras confirmar la transacción.
+ */
 export async function withTransaction(fn) {
   const conn = await pool.getConnection();
   try {
@@ -32,6 +37,10 @@ export async function withTransaction(fn) {
   }
 }
 
+/**
+ * Registra una acción con sus datos asociados; acepta una conexión transaccional o usa el pool.
+ * @param {import('mysql2/promise').PoolConnection|null} conn Conexión activa, o null para usar el pool.
+ */
 export async function audit(conn, usuarioId, accion, entidad, entidadId, detalle = null) {
   await (conn || pool).execute(
     'INSERT INTO auditoria (usuario_id, accion, entidad, entidad_id, detalle) VALUES (?,?,?,?,?)',

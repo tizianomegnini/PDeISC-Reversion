@@ -13,12 +13,18 @@ interface ToastItem {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
+/**
+ * Permite lanzar mensajes temporales de éxito o error desde cualquier vista.
+ */
 export function useToast(): ToastContextValue {
   const context = useContext(ToastContext);
   if (!context) throw new Error('useToast debe usarse dentro de ToastProvider');
   return context;
 }
 
+/**
+ * Envuelve la app con un contenedor de toasts y gestiona auto-cierre de cada notification.
+ */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
   const push = useCallback((tipo: ToastItem['tipo'], texto: string) => {

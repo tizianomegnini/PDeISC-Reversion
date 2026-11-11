@@ -4,9 +4,11 @@ import { ah } from '../utils/errors.js';
 import { parse, schemas } from '../utils/validate.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
 
+/** Registro y baja de tokens Expo del usuario autenticado. */
 const router = Router();
 router.use(authenticate(), requireRole('cliente', 'tecnico'));
 
+/** Vincula el token al usuario; una clave repetida actualiza su propietario y plataforma. */
 router.post('/dispositivo', ah(async (req, res) => {
   const { token, plataforma } = parse(schemas.pushToken, req.body);
   await pool.execute(
@@ -17,6 +19,7 @@ router.post('/dispositivo', ah(async (req, res) => {
   res.status(201).json({ ok: true });
 }));
 
+/** Elimina únicamente el token que pertenece al usuario autenticado. */
 router.delete('/dispositivo', ah(async (req, res) => {
   const { token } = parse(schemas.pushToken.pick({ token: true }), req.body);
   await pool.execute('DELETE FROM push_tokens WHERE token = ? AND usuario_id = ?', [token, req.user.id]);

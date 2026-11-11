@@ -13,6 +13,9 @@ const ITEMS: Array<[keyof ResumenAdmin['resumen'], string]> = [
   ['tecnicos_habilitados', 'Técnicos habilitados'], ['locales_activos', 'Locales activos'], ['valoraciones_total', 'Valoraciones'], ['promedio_general', 'Promedio general'],
 ];
 
+/**
+ * Resumen ejecutivo para administradores con métricas del servicio y configuración global.
+ */
 export default function AdminResumen() {
   const toast = useToast();
   const { data, error, loading, reload } = useFetch(() => adminApi.resumen());

@@ -6,6 +6,9 @@ import { errorMessage } from '../../services/api';
 import { formFieldSetter } from '../../utils';
 import type { FormEvent } from 'react';
 
+/**
+ * Formulario para registrar clientes nuevos con validación de contraseña y navegación inmediata.
+ */
 export default function Register() {
   const { user, register } = useAuth();
   const toast = useToast();

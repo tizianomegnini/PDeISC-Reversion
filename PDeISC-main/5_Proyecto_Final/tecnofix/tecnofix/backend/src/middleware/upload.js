@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { HttpError } from '../utils/errors.js';
 
+/** Middleware de carga multipart: valida una foto por mensaje y la conserva temporalmente. */
 export const MAX_ADJUNTO_BYTES = 5 * 1024 * 1024;
 export const MAX_ADJUNTOS = 1;
 const MAX_REQUEST_BYTES = MAX_ADJUNTO_BYTES + 256 * 1024;
@@ -20,11 +21,13 @@ function errorAdjunto(status, message) {
   return new HttpError(status, message);
 }
 
+/** Extrae un parámetro entrecomillado de Content-Disposition, respetando escapes. */
 function parametroDisposition(disposition, name) {
   const match = disposition.match(new RegExp(`(?:^|;)\\s*${name}="((?:\\\\.|[^"])*)"`));
   return match ? match[1].replace(/\\(.)/g, '$1') : null;
 }
 
+/** Busca solo delimitadores multipart seguidos por el cierre de parte esperado. */
 function buscarDelimitador(body, delimiter, start) {
   let position = body.indexOf(delimiter, start);
   while (position !== -1) {
@@ -36,6 +39,7 @@ function buscarDelimitador(body, delimiter, start) {
   return -1;
 }
 
+/** Comprueba extensión, MIME y firma binaria antes de asignar una clave aleatoria. */
 function validarContenido(file) {
   const extension = path.extname(file.nombreOriginal).toLowerCase();
   const mimeType = TIPOS_PERMITIDOS.get(extension);
@@ -55,6 +59,7 @@ function validarContenido(file) {
   file.storageKey = randomUUID();
 }
 
+/** Interpreta el formulario multipart validando campos, límites y contenido de imagen. */
 function parseMultipart(body, boundary) {
   const opening = Buffer.from(`--${boundary}\r\n`);
   const delimiter = Buffer.from(`\r\n--${boundary}`);
@@ -111,6 +116,12 @@ function parseMultipart(body, boundary) {
   return { files, contenido: contenido || '' };
 }
 
+/**
+ * Consume el cuerpo con límite de tamaño y agrega { files, contenido } a req.adjuntos.
+ * @param {import('express').Request} req Solicitud multipart de la API.
+ * @param {import('express').Response} _res Respuesta Express (no se modifica aquí).
+ * @param {import('express').NextFunction} next Continúa o entrega el error al middleware global.
+ */
 export function parseAdjuntos(req, _res, next) {
   const contentType = req.headers['content-type'] || '';
   const boundary = contentType.match(/^multipart\/form-data\s*;.*\bboundary=(?:"([^"]+)"|([^;\s]+))/i);
@@ -149,6 +160,11 @@ export function parseAdjuntos(req, _res, next) {
   });
 }
 
+/**
+ * Escribe las fotos con permisos restrictivos y revierte los archivos parciales ante error.
+ * @param {Array<object>} files Archivos ya validados por parseAdjuntos.
+ * @returns {Promise<Array<object>>} Metadatos de los archivos guardados, incluida su ruta temporal.
+ */
 export async function guardarAdjuntosTemporales(files) {
   await mkdir(ADJUNTOS_DIR, { recursive: true });
   const guardados = [];
@@ -165,6 +181,10 @@ export async function guardarAdjuntosTemporales(files) {
   }
 }
 
+/**
+ * Elimina los archivos temporales; ignora los que ya no existen.
+ * @param {Array<{ ruta: string }>} files Archivos guardados previamente.
+ */
 export async function eliminarAdjuntosTemporales(files) {
   await Promise.all(files.map(async (file) => {
     try { await unlink(file.ruta); }
@@ -172,6 +192,11 @@ export async function eliminarAdjuntosTemporales(files) {
   }));
 }
 
+/**
+ * Indica si una clave de almacenamiento temporal todavía corresponde a un archivo.
+ * @param {string} storageKey Identificador aleatorio asignado al archivo validado.
+ * @returns {Promise<boolean>} True si el archivo temporal sigue disponible.
+ */
 export async function adjuntoDisponible(storageKey) {
   try {
     await access(path.join(ADJUNTOS_DIR, storageKey));

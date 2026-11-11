@@ -4,6 +4,7 @@ dotenv.config();
 // El runner de Node define NODE_TEST_CONTEXT en los procesos de prueba: así nunca se toca la base real aunque falte NODE_ENV.
 const isTest = process.env.NODE_ENV === 'test' || !!process.env.NODE_TEST_CONTEXT;
 
+/** Exige una variable de entorno de producción y señala cómo configurarla. */
 function required(name) {
   const v = process.env[name];
   if (!v) throw new Error(`Falta la variable de entorno ${name}. Revise su archivo backend/.env`);
